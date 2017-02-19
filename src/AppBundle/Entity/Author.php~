@@ -3,6 +3,7 @@
 namespace AppBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\ArrayCollection;
 
 /**
  * Author
@@ -171,5 +172,77 @@ class Author
     {
         return $this->createdDate;
     }
-}
 
+    /**
+     * Add review
+     *
+     * @param \AppBundle\Entity\Review $review
+     *
+     * @return Author
+     */
+    public function addReview(\AppBundle\Entity\Review $review)
+    {
+        $this->reviews[] = $review;
+
+        return $this;
+    }
+
+    /**
+     * Remove review
+     *
+     * @param \AppBundle\Entity\Review $review
+     */
+    public function removeReview(\AppBundle\Entity\Review $review)
+    {
+        $this->reviews->removeElement($review);
+    }
+
+    /**
+     * Get reviews
+     *
+     * @return \Doctrine\Common\Collections\Collection
+     */
+    public function getReviews()
+    {
+        return $this->reviews;
+    }
+
+    /**
+     * Add fundraiser
+     *
+     * @param \AppBundle\Entity\Fundraiser $fundraiser
+     *
+     * @return Author
+     */
+    public function addFundraiser(\AppBundle\Entity\Fundraiser $fundraiser)
+    {
+        $this->fundraisers[] = $fundraiser;
+
+        return $this;
+    }
+
+    /**
+     * Remove fundraiser
+     *
+     * @param \AppBundle\Entity\Fundraiser $fundraiser
+     */
+    public function removeFundraiser(\AppBundle\Entity\Fundraiser $fundraiser)
+    {
+        $this->fundraisers->removeElement($fundraiser);
+    }
+
+    /**
+     * Get fundraisers
+     *
+     * @return \Doctrine\Common\Collections\Collection
+     */
+    public function getFundraisers()
+    {
+        return $this->fundraisers;
+    }
+
+    public function __toString() {
+        return $this->email;
+    }
+
+}

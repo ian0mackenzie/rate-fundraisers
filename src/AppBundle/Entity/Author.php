@@ -3,12 +3,15 @@
 namespace AppBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
  * Author
  *
  * @ORM\Table(name="author")
  * @ORM\Entity(repositoryClass="AppBundle\Repository\AuthorRepository")
+ * @UniqueEntity(fields={"email"}, message="Note: author already existed. Using that record")
  */
 class Author
 {
@@ -239,4 +242,19 @@ class Author
     {
         return $this->fundraisers;
     }
+
+    /**
+     *Return boolean depending on if the author has already reviewed the fundraiser
+     * @param \AppBundle\Entity\Author $author
+     * @return bool
+     */
+    public function hasFundraiser(\AppBundle\Entity\Fundraiser $fundraiser)
+    {
+        return $this->getFundraisers()->contains($fundraiser);
+    }
+
+    public function __toString() {
+        return $this->email;
+    }
+
 }

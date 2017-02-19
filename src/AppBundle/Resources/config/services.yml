@@ -1,0 +1,6 @@
+services:
+    app.form.type.author:
+        class: AppBundle\Form\AuthorType
+        arguments: ["@doctrine.orm.entity_manager"]
+        tags:
+            - { name: form.type }

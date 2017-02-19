@@ -3,6 +3,7 @@
 namespace AppBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\ArrayCollection;
 
 /**
  * Review
@@ -36,17 +37,16 @@ class Review
     private $title;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Author", inversedBy="review")
+     * @ORM\ManyToOne(targetEntity="Author", inversedBy="reviews")
      * @ORM\JoinColumn(name="author_id", referencedColumnName="id")
      */
     private $author;
 
     /**
-     * @var int
-     *
-     * @ORM\Column(name="fundraiser_id", type="integer")
+     * @ORM\ManyToOne(targetEntity="Fundraiser", inversedBy="reviews")
+     * @ORM\JoinColumn(name="fundraiser_id", referencedColumnName="id")
      */
-    private $fundraiserId;
+    private $fundraiser;
 
     /**
      * @var string
@@ -139,30 +139,6 @@ class Review
     }
 
     /**
-     * Set fundraiserId
-     *
-     * @param integer $fundraiserId
-     *
-     * @return Review
-     */
-    public function setFundraiserId($fundraiserId)
-    {
-        $this->fundraiserId = $fundraiserId;
-
-        return $this;
-    }
-
-    /**
-     * Get fundraiserId
-     *
-     * @return int
-     */
-    public function getFundraiserId()
-    {
-        return $this->fundraiserId;
-    }
-
-    /**
      * Set review
      *
      * @param string $review
@@ -208,5 +184,29 @@ class Review
     public function getAuthor()
     {
         return $this->author;
+    }
+
+    /**
+     * Set fundraiser
+     *
+     * @param \AppBundle\Entity\Author $fundraiser
+     *
+     * @return Review
+     */
+    public function setFundraiser(\AppBundle\Entity\Author $fundraiser = null)
+    {
+        $this->fundraiser = $fundraiser;
+
+        return $this;
+    }
+
+    /**
+     * Get fundraiser
+     *
+     * @return \AppBundle\Entity\Author
+     */
+    public function getFundraiser()
+    {
+        return $this->fundraiser;
     }
 }

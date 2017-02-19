@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1>Fundraisers list</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Thumbnail</th>
+                <th>Createddate</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for fundraiser in fundraisers %}
+            <tr>
+                <td><a href="{{ path('fundraiser_show', { 'id': fundraiser.id }) }}">{{ fundraiser.id }}</a></td>
+                <td>{{ fundraiser.name }}</td>
+                <td>{{ fundraiser.description }}</td>
+                <td>{{ fundraiser.thumbnail }}</td>
+                <td>{% if fundraiser.createdDate %}{{ fundraiser.createdDate|date('Y-m-d H:i:s') }}{% endif %}</td>
+                <td>
+                    <ul>
+                        <li>
+                            <a href="{{ path('fundraiser_show', { 'id': fundraiser.id }) }}">show</a>
+                        </li>
+                        <li>
+                            <a href="{{ path('fundraiser_edit', { 'id': fundraiser.id }) }}">edit</a>
+                        </li>
+                    </ul>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <ul>
+        <li>
+            <a href="{{ path('fundraiser_new') }}">Create a new fundraiser</a>
+        </li>
+    </ul>
+{% endblock %}

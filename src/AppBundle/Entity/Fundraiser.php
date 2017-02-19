@@ -3,7 +3,8 @@
 namespace AppBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-
+use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Validator\Constraints as Assert;
 /**
  * Fundraiser
  *
@@ -50,8 +51,9 @@ class Fundraiser
     private $createdDate;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Author", inversedBy="fundraiser")
+     * @ORM\ManyToOne(targetEntity="Author", inversedBy="fundraisers", cascade={"persist"})
      * @ORM\JoinColumn(name="author_id", referencedColumnName="id")
+     * @Assert\Valid()
      */
     private $author;
 
@@ -253,4 +255,9 @@ class Fundraiser
     {
         return $this->reviews;
     }
+
+    public function __toString() {
+        return $this->name;
+    }
+
 }
