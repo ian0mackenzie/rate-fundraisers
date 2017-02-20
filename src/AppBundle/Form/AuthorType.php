@@ -2,7 +2,6 @@
 
 namespace AppBundle\Form;
 
-use AppBundle\Form\DataTransformer\AuthorTransformer;
 use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -13,23 +12,15 @@ class AuthorType extends AbstractType
 
     private $manager;
 
-
-    public function __construct(ObjectManager $manager)
-    {
-        $this->manager = $manager;
-    }
-
     /**
      * {@inheritdoc}
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-
-        $transformer = new AuthorTransformer($this->manager);
-
-        $builder->add($builder->create('email')->addModelTransformer($transformer));
+        //$builder->add($builder->create('email')->addModelTransformer($transformer));
 
         $builder->add('firstName')->add('lastName');
+        $builder->add('email');
 
         //We'll handle dates. Don't want users to access that.
         //$builder->add('createdDate');

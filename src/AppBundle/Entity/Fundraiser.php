@@ -5,11 +5,13 @@ namespace AppBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 /**
  * Fundraiser
  *
  * @ORM\Table(name="fundraiser")
  * @ORM\Entity(repositoryClass="AppBundle\Repository\FundraiserRepository")
+ * @UniqueEntity(fields={"name"}, message="Note: That fundraiser already existed.")
  */
 class Fundraiser
 {

@@ -11,8 +11,9 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  *
  * @ORM\Table(name="author")
  * @ORM\Entity(repositoryClass="AppBundle\Repository\AuthorRepository")
- * @UniqueEntity(fields={"email"}, message="Note: author already existed. Using that record")
- */
+  */
+//* @UniqueEntity(fields={"email"}, message="Note: author already existed. Using that record")
+
 class Author
 {
     /**

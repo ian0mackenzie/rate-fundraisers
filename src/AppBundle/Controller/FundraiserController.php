@@ -3,9 +3,15 @@
 namespace AppBundle\Controller;
 
 use AppBundle\Entity\Fundraiser;
+use AppBundle\Review;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;use Symfony\Component\HttpFoundation\Request;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Symfony\Component\HttpFoundation\Request;
+use AppBundle\General\HelperClass;
+
+use AppBundle\Form\ReviewType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 
 /**
  * Fundraiser controller.
@@ -20,15 +26,43 @@ class FundraiserController extends Controller
      * @Route("/", name="fundraiser_index")
      * @Method("GET")
      */
-    public function indexAction()
+    public function indexAction(Request $request)
     {
+        $sortBy = $request->query->get('sort_by');
+
         $em = $this->getDoctrine()->getManager();
 
-        $fundraisers = $em->getRepository('AppBundle:Fundraiser')->findAll();
+        if('average-rating' === $sortBy){
+            $fundraisers = $em->getRepository('AppBundle:Fundraiser')->getFundraisersByAverageRating();
+        } else {
+            $fundraisers = $em->getRepository('AppBundle:Fundraiser')->findAll();
+        }
 
         return $this->render('fundraiser/index.html.twig', array(
             'fundraisers' => $fundraisers,
         ));
+    }
+
+   protected function getAuthor(\AppBundle\Entity\Author $author){
+
+        $em = $this->getDoctrine()->getManager();
+        $email = $author->getEmail();
+
+        $existingAuthor = $em->getRepository('AppBundle:Author')->findOneByEmail($email);
+
+        if($existingAuthor){
+            $existingAuthor->setFirstName($author->getFirstName());
+            $existingAuthor->setLastName($author->getLastName());
+            $author = $existingAuthor;
+        } else {
+            $date = new \DateTime("now");
+            $author->setCreatedDate($date);
+            $em->persist($author);
+        }
+
+        $em->flush();
+
+        return $author;
     }
 
     /**
@@ -45,33 +79,24 @@ class FundraiserController extends Controller
 
         if ($form->isSubmitted() && $form->isValid()) {
 
-            //Set the timestamps on fundraiser/author.
+
+            //Update existing author or create new
+            $em = $this->getDoctrine()->getManager();
+            $author = $this->getAuthor($fundraiser->getAuthor());
+            //Set the author
+            $fundraiser = $form->getData();
+            $fundraiser->setAuthor($author);
+            //Set Created Date
             $date = new \DateTime("now");
             $fundraiser->setCreatedDate($date);
-            $fundraiser->getAuthor()->setCreatedDate($date);
-
-            $email = $fundraiser->getAuthor()->getEmail();
-
-            $author = $this->getDoctrine()->getRepository('AppBundle:Author')
-            ->findOneByEmail("ian0mackenzie@gmail.com");
-
-            //Persist to database.
-            $em = $this->getDoctrine()->getManager();
-
-            if($author) {
-
-                $author->setFirstName($fundraiser->getAuthor()->getFirstName());
-                $author->setLastName($fundraiser->getAuthor()->getLastName());
-                $fundraiser->setAuthor($author);
-                $em->persist($fundraiser->getAuthor());
-            }
-
-            var_dump($fundraiser->getAuthor()->getFirstName());
-
             $em->persist($fundraiser);
             $em->flush($fundraiser);
 
+
+
+
             return $this->redirectToRoute('fundraiser_show', array('id' => $fundraiser->getId()));
+
         }
 
         return $this->render('fundraiser/new.html.twig', array(
@@ -88,11 +113,38 @@ class FundraiserController extends Controller
      */
     public function showAction(Fundraiser $fundraiser)
     {
+
         $deleteForm = $this->createDeleteForm($fundraiser);
 
         return $this->render('fundraiser/show.html.twig', array(
             'fundraiser' => $fundraiser,
             'delete_form' => $deleteForm->createView(),
+        ));
+    }
+
+    /**
+     * The review form for fundraisers
+     *
+     * @Route("/{id}/review", name="fundraiser_review")
+     * @Method({"GET", "POST"})
+     */
+    public function reviewAction(Request $request, Fundraiser $fundraiser)
+    {
+
+        $reviewForm = $this->createFormBuilder($fundraiser);
+        
+		$reviewForm->add('reviews', ReviewType::class, array("label" => FALSE))
+
+
+            ->getForm();
+
+        if ($reviewForm->isSubmitted() && $reviewForm->isValid()) {
+            $this->getDoctrine()->getManager()->flush();
+            return $this->redirectToRoute('fundraiser_show', array('id' => $fundraiser->getId()));
+        }
+
+        return $this->render('fundraiser/review.html.twig', array(
+            'form' => $reviewForm->createView(),
         ));
     }
 

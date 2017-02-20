@@ -11,6 +11,8 @@ use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 
+use Symfony\Component\Form\FormEvents;
+
 class ReviewType extends AbstractType
 {
     /**
@@ -19,20 +21,16 @@ class ReviewType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
 
-        $builder->add('review')->add('title')->add('fundraiser');
+        $builder->add('review')->add('title');
 
-        //$builder->add('fundraiser', HiddenType::class);
-
-        $builder->add('author', CollectionType::class, array(
-            'entry_type' => AuthorType::class,
-            'allow_add' => true
-        ));
+        $builder->add('author', AuthorType::class, array("label" => FALSE));
 
         $builder->add('rating', ChoiceType::class, array(
             'choices' => array('1' => '1', '2' => '2', '3' => '3', '4' => '4', '5' =>'5'),
             'expanded' => true,
             'multiple' => false
         ));
+
 
     }
     

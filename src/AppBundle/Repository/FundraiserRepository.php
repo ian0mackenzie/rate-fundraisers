@@ -10,4 +10,24 @@ namespace AppBundle\Repository;
  */
 class FundraiserRepository extends \Doctrine\ORM\EntityRepository
 {
+
+	public function getFundraisersByAverageRating()
+	{
+    	$em = $this->getEntityManager();
+
+    	$query = $em->createQuery('
+			SELECT Fundraiser.id, Fundraiser.name, AVG(Review.rating) as avg_rating
+			FROM AppBundle:Fundraiser Fundraiser
+			JOIN AppBundle:Review Review
+			WHERE Fundraiser.id = Review.fundraiser
+			GROUP BY Fundraiser.id
+			ORDER BY avg_rating DESC
+		');
+
+    $result = $query->getResult();
+
+    return $result;
+}
+
+
 }

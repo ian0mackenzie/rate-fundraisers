@@ -7,6 +7,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\Request;
+use AppBundle\General\HelperClass;
 
 /**
  * Author controller.
@@ -46,12 +47,24 @@ class AuthorController extends Controller
 
         if ($form->isSubmitted() && $form->isValid()) {
 
-            //Set creation timestamp.
-            $date = new \DateTime("now");
-//            $author->setCreatedDate($date);
-
-            //Persist to database.
             $em = $this->getDoctrine()->getManager();
+            // check to see if the email already exists.
+            $existingAuthor = $em
+                ->getRepository('AppBundle:Author')
+                ->findOneByEmail($author->getEmail());
+
+            if ($existingAuthor) {
+
+                //if the email does exist, grab the incoming name and update the existing name with it.
+                $existingAuthor->setFirstName($author->getFirstName());
+                $existingAuthor->setLastName($author->getLastName());
+                $author = $existingAuthor;
+
+            } else {
+                //Other wise it's a new author. Set the creation timestamp.
+                $date = new \DateTime("now");
+                $author->setCreatedDate($date);
+            }
             $em->persist($author);
             $em->flush($author);
 
