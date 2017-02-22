@@ -16,9 +16,9 @@ class FundraiserRepository extends \Doctrine\ORM\EntityRepository
     	$em = $this->getEntityManager();
 
     	$query = $em->createQuery('
-			SELECT Fundraiser.id, Fundraiser.name, AVG(Review.rating) as avg_rating
+			SELECT Fundraiser.id, Fundraiser.name, Fundraiser.description, Fundraiser.thumbnail, Fundraiser.createdDate,AVG(Review.rating) as avg_rating
 			FROM AppBundle:Fundraiser Fundraiser
-			JOIN AppBundle:Review Review
+			LEFT JOIN AppBundle:Review Review
 			WHERE Fundraiser.id = Review.fundraiser
 			GROUP BY Fundraiser.id
 			ORDER BY avg_rating DESC

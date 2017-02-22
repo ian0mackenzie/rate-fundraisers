@@ -22,11 +22,20 @@ class ReviewController extends Controller
      * @Route("/", name="review_index")
      * @Method("GET")
      */
-    public function indexAction()
+    public function indexAction(Request $request)
     {
+
+        //if we're passing a fundraiser_id it'll be an embed in twig template.
+        $fundraiserId = $request->get('fundraiser_id');
+
         $em = $this->getDoctrine()->getManager();
 
-        $reviews = $em->getRepository('AppBundle:Review')->findAll();
+        //If we have a fundraiser_id then display reviews belonging to that fundraiser
+        if(!empty($fundraiserId)){
+            $reviews = $em->getRepository('AppBundle:Review')->findBy(array('fundraiser' => $fundraiserId));
+        } else {
+            $reviews = $em->getRepository('AppBundle:Review')->findAll();            
+        }
 
         return $this->render('review/index.html.twig', array(
             'reviews' => $reviews
@@ -42,20 +51,10 @@ class ReviewController extends Controller
     public function newAction(Request $request)
     {
         $review = new Review();
-        $author = new Author();
-
-//        $author->setEmail("ianvmackenzie@gmail.com");
-//        $author->setFirstName("Ian");
-//        $author->setLastName("Mackenzie");
-
-//        $review->getAuthor()->add(new Author());
-
-
-
 
         $form = $this->createForm('AppBundle\Form\ReviewType', $review);
-        $form->handleRequest($request);
 
+        $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $em = $this->getDoctrine()->getManager();
             $em->persist($review);

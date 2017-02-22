@@ -189,11 +189,11 @@ class Review
     /**
      * Set fundraiser
      *
-     * @param \AppBundle\Entity\Author $fundraiser
+     * @param \AppBundle\Entity\Fundraiser $fundraiser
      *
      * @return Review
      */
-    public function setFundraiser(\AppBundle\Entity\Author $fundraiser = null)
+    public function setFundraiser(\AppBundle\Entity\Fundraiser $fundraiser = null)
     {
         $this->fundraiser = $fundraiser;
 

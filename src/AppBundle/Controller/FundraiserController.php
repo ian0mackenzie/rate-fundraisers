@@ -3,7 +3,7 @@
 namespace AppBundle\Controller;
 
 use AppBundle\Entity\Fundraiser;
-use AppBundle\Review;
+use AppBundle\Entity\Review;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
@@ -28,7 +28,8 @@ class FundraiserController extends Controller
      */
     public function indexAction(Request $request)
     {
-        $sortBy = $request->query->get('sort_by');
+    	//if we're passing a sort_by it'll be an embed in twig template.
+        $sortBy = $request->get('sort_by');
 
         $em = $this->getDoctrine()->getManager();
 
@@ -65,6 +66,24 @@ class FundraiserController extends Controller
         return $author;
     }
 
+   protected function getReview(\AppBundle\Entity\Author $author, \AppBundle\Entity\Fundraiser $fundraiser, \AppBundle\Entity\Review $review){
+
+        $em = $this->getDoctrine()->getManager();
+        $authorId = $author->getId();
+
+        $existingReview = $em->getRepository('AppBundle:Review')->getReviewByUserIdAndFundraiserId($author, $fundraiser);
+
+        if($existingReview) {
+        	$existingReview->setRating($review->getRating());
+        	$existingReview->setTitle($review->getTitle());
+        	$existingReview->setReview($review->getReview());
+        	$review = $existingReview;
+        }
+
+        return $review;
+
+    }
+
     /**
      * Creates a new fundraiser entity.
      *
@@ -75,6 +94,9 @@ class FundraiserController extends Controller
     {
         $fundraiser = new Fundraiser();
         $form = $this->createForm('AppBundle\Form\FundraiserType', $fundraiser);
+
+
+
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -130,15 +152,34 @@ class FundraiserController extends Controller
      */
     public function reviewAction(Request $request, Fundraiser $fundraiser)
     {
+    	$review = new Review();
+    	//Build the review form. 
 
-        $reviewForm = $this->createFormBuilder($fundraiser);
-        
-		$reviewForm->add('reviews', ReviewType::class, array("label" => FALSE))
-
-
+        $reviewForm = $this->createFormBuilder($review)
+            ->add('review', ReviewType::class, array("label" => FALSE))
+			->setAction($this->generateUrl('fundraiser_review', array('id' =>$fundraiser->getId())))
             ->getForm();
 
+        $reviewForm->handleRequest($request);
+
         if ($reviewForm->isSubmitted() && $reviewForm->isValid()) {
+
+            //Update existing author or create new
+            $em = $this->getDoctrine()->getManager();
+            $review = $reviewForm->getData()->getReview();
+            $author = $this->getAuthor($review->getAuthor());
+
+            //Update the existing review or get a new one
+            $author = $this->getAuthor($review->getAuthor());
+            $review = $this->getReview($author, $fundraiser, $review);
+
+            //Set the author and fundraiser for the review.
+            $review->setAuthor($author);
+            $review->setFundraiser($fundraiser);
+
+            $em->persist($review);
+            $em->flush($review);
+
             $this->getDoctrine()->getManager()->flush();
             return $this->redirectToRoute('fundraiser_show', array('id' => $fundraiser->getId()));
         }

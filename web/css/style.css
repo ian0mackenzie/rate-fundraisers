@@ -1,0 +1,184 @@
+body {
+	padding-top: 70px;
+}
+
+body#homepage{
+	padding-top: 0px;
+}
+
+#siteHeader {
+    background: rgba(0, 0, 0, 0.6) none repeat scroll 0 0;
+    transition: all 0.5s ease 0s;
+}
+
+.header-wrapper .navbar-header {
+	float: right;
+	margin-top: 15px;
+}
+
+#bs-example-navbar-collapse-1 li a {
+	color: white;
+}
+
+.patua {
+	font-family: "Patua One",cursive;
+}
+
+h1.logo {
+    color: white;
+    float: left;
+    visibility: hidden;
+    opacity: 0;
+    text-decoration: underline;
+	-webkit-transition: all 0.5s linear;
+	-moz-transition: all 0.5s linear;
+	-o-transition: all 0.5s linear;
+	transition: all 0.5s linear;
+    white-space: nowrap;
+
+}
+
+.thumbnail img {
+    height: 509px;
+    width: 100%;
+}
+
+#siteHeader h1.logo {
+    visibility: visible;
+    opacity: 1;
+}
+
+.header-wrapper {
+    margin: 0 auto;
+    max-width: 1170px;
+    padding-left: 20px;
+    padding-right: 20px;
+    width: 100%;
+}
+
+#homepage .header-image {
+    background: rgba(0, 0, 0, 0) url("../images/money.jpg") repeat scroll 0 0 / 100% auto;
+    padding: 279px 25% 480px;
+}
+
+.jumbotron {
+    background-color: rgba(255, 255, 255, 0.6);
+}
+.navbar-default .navbar-toggle:focus, .navbar-default .navbar-toggle:hover {
+    background-color: transparent;
+}
+
+.navbar-default .navbar-collapse, .navbar-default .navbar-form {
+    border-color: transparent;
+    clear: both;
+}
+
+#fundraiserpage img {
+	max-width: 400px;
+	max-height: 300px;
+}
+
+#fundraiserpage .reviews .media {
+	border-bottom: 1px solid #e3e3e3;
+}
+
+#fundraiserpage .media-left{
+	white-space: nowrap;
+}
+
+.navbar-default {
+	border-bottom: none;
+}
+
+ #form_review_rating {
+    float:left;
+    border:none;
+    clear: both;
+    float: none;
+    display: inline-block;
+    overflow: auto;
+}
+
+#form_review_rating:not(:checked) > input {
+    position:absolute;
+    top:-9999px;
+    clip:rect(0, 0, 0, 0);
+    display: none;
+}
+
+#form_review_rating:not(:checked) > label {
+    float: right;
+    width:1em;
+    padding:0 .1em;
+    overflow:hidden;
+    white-space:nowrap;
+    cursor:pointer;
+    font-size:200%;
+    line-height:1.2;
+    color:#ddd;
+}
+#form_review_rating:not(:checked) > label:before {
+    content:'★ ';
+}
+#form_review_rating > input:checked ~ label {
+    color: #f70;
+}
+#form_review_rating:not(:checked) > label:hover, 
+#form_review_rating:not(:checked) > label:hover ~ label  {
+    color: gold;
+}
+#form_review_rating > input:checked + label:hover, 
+#form_review_rating > input:checked + label:hover ~ label, 
+#form_review_rating > input:checked ~ label:hover, 
+#form_review_rating > input:checked ~ label:hover ~ label {
+    color: #ea0;
+}
+#form_review_rating > label:active {
+    position:relative;
+}
+
+#fundraiserpage label {
+	display: block;
+}
+
+@media only screen and (max-width: 1440px)  {
+
+	#homepage .header-image {
+    	background: rgba(0, 0, 0, 0) url("../images/money.jpg") repeat scroll 0 0 / auto 100%;
+    }
+}
+
+@media only screen and (max-width: 1170px)  {
+
+
+	#homepage .header-image {
+	    padding: 279px 10% 480px;
+	}
+
+}
+
+@media only screen and (max-width: 970px)  {
+
+	#homepage .header-image {
+	    padding: 279px 5% 480px;
+	}
+
+}
+
+@media only screen and (max-width: 768px)  {
+
+	.navbar-default .navbar-collapse, .navbar-default .navbar-form {
+	    clear: both;
+	}
+
+	.header-wrapper .navbar-header {
+		float: none;
+	    margin-top: 9px;
+	}
+
+	h1.logo {
+	    font-size: 27px;
+	    margin-top: 12px;
+	}
+
+}

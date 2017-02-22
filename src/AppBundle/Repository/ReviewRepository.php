@@ -10,4 +10,25 @@ namespace AppBundle\Repository;
  */
 class ReviewRepository extends \Doctrine\ORM\EntityRepository
 {
+
+	public function getReviewByUserIdAndFundraiserId(\AppBundle\Entity\Author $author, \AppBundle\Entity\Fundraiser $fundraiser)
+	{
+    	$em = $this->getEntityManager();
+
+    	$query = $em->createQuery('
+			SELECT Review
+			FROM AppBundle:Review Review
+			WHERE Review.author = :authorId
+			AND Review.fundraiser = :fundraiserId
+		');
+
+    	$query->setParameter(":authorId", $author->getId());
+    	$query->setParameter(":fundraiserId", $fundraiser->getId());
+    	$query->setMaxResults(1);
+
+	    $existingReviews = $query->getResult();
+
+    return (count($existingReviews) > 0) ? $existingReviews[0] : null;
+	}
+
 }

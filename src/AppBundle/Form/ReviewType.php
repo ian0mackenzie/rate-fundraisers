@@ -21,16 +21,17 @@ class ReviewType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
 
-        $builder->add('review')->add('title');
-
-        $builder->add('author', AuthorType::class, array("label" => FALSE));
-
+        $builder->add('title');
         $builder->add('rating', ChoiceType::class, array(
             'choices' => array('1' => '1', '2' => '2', '3' => '3', '4' => '4', '5' =>'5'),
             'expanded' => true,
-            'multiple' => false
+            
+            'multiple' => false,
+            'choice_attr' => function($val, $key, $index) {
+                return ['class' => 'rating'];
+            }
         ));
-
+        $builder->add('review')->add('author')->add('author', AuthorType::class, array("label" => FALSE));
 
     }
     

@@ -1,13 +1,81 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8" />
-        <title>{% block title %}Welcome!{% endblock %}</title>
-        {% block stylesheets %}{% endblock %}
-        <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}" />
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport"
+     content="width=device-width, initial-scale=1, user-scalable=no">
+     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script> 
+	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+	<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <title>{% block title %}Welcome!{% endblock %}</title>
+    {% block stylesheets %}{% endblock %}
+
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}" />
+
+	<link rel="stylesheet" type="text/css" href="{{ asset('/css/style.css') }}">
+
+    <link href="https://fonts.googleapis.com/css?family=Oswald:200,300,400,500,600,700|Patua+One" rel="stylesheet"> 
+
+<script>
+	function equalHeight(group) {    
+	    var tallest = 0;    
+	    group.each(function() {       
+	        var thisHeight = $(this).height();       
+	        if(thisHeight > tallest) {          
+	            tallest = thisHeight;       
+	        }    
+	    });    
+	    group.each(function() { $(this).height(tallest); });
+	} 
+
+	$(document).ready(function() {   
+	    equalHeight($("#homepage .col-lg-4 col-md-4 col-sm-6 col-xs-12")); 
+
+	});
+
+	var x=0;
+	$(document).ready(function(){
+	  $(window).resize(function(){
+	    equalHeight($("#homepage .thumbnail")); 
+	  });
+	});
+console.log("test");
+</script>
     </head>
-    <body>
-        {% block body %}{% endblock %}
-        {% block javascripts %}{% endblock %}
+    <body id="{% block body_id %}{% endblock %}">
+    {% block foldcontent %}{% endblock %}
+
+	<header id="siteHeader" class="homepage navbar navbar-default navbar-fixed-top">
+		<div class="header-wrapper">
+
+    		<h1 class="logo patua">gRATE FUNDRAI$ER$</h1>
+
+			<div class="navbar-header">    		
+				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+			        <span class="sr-only">Toggle navigation</span>
+			        <span class="icon-bar"></span>
+			        <span class="icon-bar"></span>
+			        <span class="icon-bar"></span>
+				</button>
+			<nav role="navigation" class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+				<ul class="nav navbar-nav">
+					<li><a href="#">Home</a></li>
+					<li><a href="#">Fundraisers</a></li>
+					<li><a href="#">Sign Up/Log In</a></li>
+					<li><a href="#">Contact</a></li>
+				</ul>
+			</nav>
+
+		</div>
+	</header>
+	<div class="container">
+	    <div class="col-md-12">
+		    {% block body %}{% endblock %}
+		    {% block javascripts %}{% endblock %}
+	    </div>
+    </div>
     </body>
 </html>

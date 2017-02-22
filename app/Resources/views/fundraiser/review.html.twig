@@ -1,17 +1,16 @@
 {% extends 'base.html.twig' %}
+{% form_theme form 'form/fields.html.twig' %}
 
 {% block body %}
-    <h1>Review Fundraiser</h1>
+    <div class="form-group">{{ form_start(form) }}</div>
+    <div class="form-group">{{ form_row(form.review.title) }}</div>
+    <div class="form-group">{{ form_row(form.review.rating) }}</div>
+    <div class="form-group">{{ form_row(form.review.review) }}</div>
+    <div class="form-group">{{ form_row(form.review.author.firstName) }}</div>
+    <div class="form-group">{{ form_row(form.review.author.lastName) }}</div>
+    <div class="form-group">{{ form_row(form.review.author.email) }}</div>
 
-    {{ form_start(form) }}
-        {{ form_widget(form) }}
-        <input type="submit" value="Create" />
+        <input class="btn btn-default" type="submit" value="Create" />
     {{ form_end(form) }}
-
-    <ul>
-        <li>
-            <a href="{{ path('fundraiser_index') }}">Back to the list</a>
-        </li>
-    </ul>
 {% endblock %}
  

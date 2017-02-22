@@ -1,43 +1,23 @@
-{% extends 'base.html.twig' %}
+<div class="container-fluid reviews">
+    {% for review in reviews %}
+        <div class="media">
+        <h3 class="media-heading">{{ review.title }}</h3>
+            <div class="media-left media-top">
+                <p class="stars">
+                    {% for i in 0..4 %}
+                        {% if i < review.rating %}
+                        <span class="glyphicon glyphicon-star"></span>
+                        {% else %}
+                        <span class="glyphicon glyphicon-star-empty"></span>
+                        {% endif %}
+                    {% endfor %}
+                </p>
+            </div>
+            <div class="media-body">
 
-{% block body %}
-    <h1>Reviews list</h1>
-
-    <table>
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Rating</th>
-                <th>Title</th>
-                <th>Review</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for review in reviews %}
-            <tr>
-                <td><a href="{{ path('review_show', { 'id': review.id }) }}">{{ review.id }}</a></td>
-                <td>{{ review.rating }}</td>
-                <td>{{ review.title }}</td>
-                <td>{{ review.review }}</td>
-                <td>
-                    <ul>
-                        <li>
-                            <a href="{{ path('review_show', { 'id': review.id }) }}">show</a>
-                        </li>
-                        <li>
-                            <a href="{{ path('review_edit', { 'id': review.id }) }}">edit</a>
-                        </li>
-                    </ul>
-                </td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-
-    <ul>
-        <li>
-            <a href="{{ path('review_new') }}">Create a new review</a>
-        </li>
-    </ul>
-{% endblock %}
+                <p>{{ review.review }}</p>
+                <p>-{{ review.author.firstName }} {{ review.author.lastName }}</p>
+            </div>
+        </div>
+    {% endfor %}
+</div>

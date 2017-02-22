@@ -1,45 +1,17 @@
-{% extends 'base.html.twig' %}
-
-{% block body %}
-    <h1>Fundraisers list</h1>
-
-    <table>
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Name</th>
-                <th>Description</th>
-                <th>Thumbnail</th>
-                <th>Createddate</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for fundraiser in fundraisers %}
-            <tr>
-                <td><a href="{{ path('fundraiser_show', { 'id': fundraiser.id }) }}">{{ fundraiser.id }}</a></td>
-                <td>{{ fundraiser.name }}</td>
-                <td>{{ fundraiser.description }}</td>
-                <td>{{ fundraiser.thumbnail }}</td>
-                <td>{% if fundraiser.createdDate %}{{ fundraiser.createdDate|date('Y-m-d H:i:s') }}{% endif %}</td>
-                <td>
-                    <ul>
-                        <li>
-                            <a href="{{ path('fundraiser_show', { 'id': fundraiser.id }) }}">show</a>
-                        </li>
-                        <li>
-                            <a href="{{ path('fundraiser_edit', { 'id': fundraiser.id }) }}">edit</a>
-                        </li>
-                    </ul>
-                </td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-
-    <ul>
-        <li>
-            <a href="{{ path('fundraiser_new') }}">Create a new fundraiser</a>
-        </li>
-    </ul>
-{% endblock %}
+{% block body_id 'fundraiserindex' %}
+<div class="row">
+    {% for fundraiser in fundraisers %}
+        <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
+            <div class="thumbnail">
+                {% if fundraiser.thumbnail is defined %}
+                <img src="{{ fundraiser.thumbnail }}" alt="Thumbnail for {{ fundraiser.name }}">
+                {% endif %}
+                <div class="caption">
+                    <h3>{{ fundraiser.name }}</h3>
+                    <p>{{fundraiser.description }}</p>
+                    <p><a href="{{ path('fundraiser_show', { 'id': fundraiser.id }) }}" class="btn btn-primary" role="button">More</a></p>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
