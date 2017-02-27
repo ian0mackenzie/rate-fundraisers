@@ -33,7 +33,7 @@ class AuthorController extends Controller
         ));
     }
 
-    /**
+    /*NOTE: COMMENTED OUT
      * Creates a new author entity.
      *
      * @Route("/new", name="author_new")
@@ -77,7 +77,7 @@ class AuthorController extends Controller
         ));
     }
 
-    /**
+    /*NOTE: COMMENTED OUT
      * Finds and displays a author entity.
      *
      * @Route("/{id}", name="author_show")
@@ -93,7 +93,7 @@ class AuthorController extends Controller
         ));
     }
 
-    /**
+    /*NOTE: COMMENTED OUT
      * Displays a form to edit an existing author entity.
      *
      * @Route("/{id}/edit", name="author_edit")
@@ -118,7 +118,7 @@ class AuthorController extends Controller
         ));
     }
 
-    /**
+    /*NOTE: COMMENTED OUT
      * Deletes a author entity.
      *
      * @Route("/{id}", name="author_delete")
@@ -138,7 +138,7 @@ class AuthorController extends Controller
         return $this->redirectToRoute('author_index');
     }
 
-    /**
+    /*NOTE: COMMENTED OUT
      * Creates a form to delete a author entity.
      *
      * @param Author $author The author entity

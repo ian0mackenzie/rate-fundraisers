@@ -5,35 +5,29 @@ namespace AppBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
-
+use FOS\UserBundle\Model\User as BaseUser;
+use Symfony\Component\Validator\Constraints as Assert;
 /**
  * Author
  *
  * @ORM\Table(name="author")
  * @ORM\Entity(repositoryClass="AppBundle\Repository\AuthorRepository")
+ *@ORM\HasLifecycleCallbacks
   */
-//* @UniqueEntity(fields={"email"}, message="Note: author already existed. Using that record")
+//* @UniqueEntity(fields={"email"}, message="Note: author already exists")
 
-class Author
-{
+class Author extends BaseUser {
+
     /**
-     * @var int
-     *
-     * @ORM\Column(name="id", type="integer")
      * @ORM\Id
+     * @ORM\Column(type="integer")
      * @ORM\GeneratedValue(strategy="AUTO")
      */
-    private $id;
+    protected $id;
 
     /**
      * @var string
-     *
-     * @ORM\Column(name="email", type="string", length=255, unique=true)
-     */
-    private $email;
-
-    /**
-     * @var string
+     * @Assert\NotBlank()
      *
      * @ORM\Column(name="first_name", type="string", length=255)
      */
@@ -41,6 +35,7 @@ class Author
 
     /**
      * @var string
+     * @Assert\NotBlank()
      *
      * @ORM\Column(name="last_name", type="string", length=255)
      */
@@ -69,6 +64,15 @@ class Author
         $this->fundraisers = new ArrayCollection();
     }
 
+     /**
+     * @ORM\PrePersist()
+     * 
+     */
+
+    public function prePersist()
+    {
+        $this->createdDate = new \DateTime;
+    }
 
     /**
      * Get id

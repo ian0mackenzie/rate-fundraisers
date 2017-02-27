@@ -21,49 +21,40 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 class FundraiserController extends Controller
 {
     /**
-     * Lists all fundraiser entities.
+     * Show all fundraiser entities.
      *
      * @Route("/", name="fundraiser_index")
      * @Method("GET")
      */
     public function indexAction(Request $request)
     {
-    	//if we're passing a sort_by it'll be an embed in twig template.
+        return $this->render('fundraiser/index.html.twig');
+    }
+
+    /**
+     * Lists all fundraiser entities, optionally sorted.
+     *
+     * @Route("/list", name="fundraiser_list")
+     * @Method("GET")
+     */
+    public function listAction(Request $request)
+    {
+        //if we're passing a sort_by it'll be an embed in twig template.
         $sortBy = $request->get('sort_by');
 
         $em = $this->getDoctrine()->getManager();
 
         if('average-rating' === $sortBy){
-            $fundraisers = $em->getRepository('AppBundle:Fundraiser')->getFundraisersByAverageRating();
+            $sortBy = "avg_rating";
+            $fundraisers = $em->getRepository('AppBundle:Fundraiser')->getFundraisersByAverageRating($sortBy);
         } else {
-            $fundraisers = $em->getRepository('AppBundle:Fundraiser')->findAll();
+            $sortBy = "name";
+            $fundraisers = $em->getRepository('AppBundle:Fundraiser')->getFundraisersByAverageRating($sortBy);
         }
 
-        return $this->render('fundraiser/index.html.twig', array(
+        return $this->render('fundraiser/list.html.twig', array(
             'fundraisers' => $fundraisers,
         ));
-    }
-
-   protected function getAuthor(\AppBundle\Entity\Author $author){
-
-        $em = $this->getDoctrine()->getManager();
-        $email = $author->getEmail();
-
-        $existingAuthor = $em->getRepository('AppBundle:Author')->findOneByEmail($email);
-
-        if($existingAuthor){
-            $existingAuthor->setFirstName($author->getFirstName());
-            $existingAuthor->setLastName($author->getLastName());
-            $author = $existingAuthor;
-        } else {
-            $date = new \DateTime("now");
-            $author->setCreatedDate($date);
-            $em->persist($author);
-        }
-
-        $em->flush();
-
-        return $author;
     }
 
    protected function getReview(\AppBundle\Entity\Author $author, \AppBundle\Entity\Fundraiser $fundraiser, \AppBundle\Entity\Review $review){
@@ -102,9 +93,9 @@ class FundraiserController extends Controller
         if ($form->isSubmitted() && $form->isValid()) {
 
 
-            //Update existing author or create new
+
             $em = $this->getDoctrine()->getManager();
-            $author = $this->getAuthor($fundraiser->getAuthor());
+            $author = $this->getUser();
             //Set the author
             $fundraiser = $form->getData();
             $fundraiser->setAuthor($author);
@@ -131,46 +122,20 @@ class FundraiserController extends Controller
      * Finds and displays a fundraiser entity.
      *
      * @Route("/{id}", name="fundraiser_show")
-     * @Method("GET")
+     * @Method({"GET","POST"})
      */
-    public function showAction(Fundraiser $fundraiser)
+    public function showAction(Request $request, Fundraiser $fundraiser)
     {
+        $review = new Review();
+        $form = $this->createForm('AppBundle\Form\ReviewType', $review);
+        $form->handleRequest($request);
 
-        $deleteForm = $this->createDeleteForm($fundraiser);
+        if ($form->isSubmitted() && $form->isValid()) {
 
-        return $this->render('fundraiser/show.html.twig', array(
-            'fundraiser' => $fundraiser,
-            'delete_form' => $deleteForm->createView(),
-        ));
-    }
-
-    /**
-     * The review form for fundraisers
-     *
-     * @Route("/{id}/review", name="fundraiser_review")
-     * @Method({"GET", "POST"})
-     */
-    public function reviewAction(Request $request, Fundraiser $fundraiser)
-    {
-    	$review = new Review();
-    	//Build the review form. 
-
-        $reviewForm = $this->createFormBuilder($review)
-            ->add('review', ReviewType::class, array("label" => FALSE))
-			->setAction($this->generateUrl('fundraiser_review', array('id' =>$fundraiser->getId())))
-            ->getForm();
-
-        $reviewForm->handleRequest($request);
-
-        if ($reviewForm->isSubmitted() && $reviewForm->isValid()) {
-
-            //Update existing author or create new
+            //Update existing review or create new
             $em = $this->getDoctrine()->getManager();
-            $review = $reviewForm->getData()->getReview();
-            $author = $this->getAuthor($review->getAuthor());
-
-            //Update the existing review or get a new one
-            $author = $this->getAuthor($review->getAuthor());
+            $review = $form->getData();
+            $author = $this->getUser();
             $review = $this->getReview($author, $fundraiser, $review);
 
             //Set the author and fundraiser for the review.
@@ -184,8 +149,9 @@ class FundraiserController extends Controller
             return $this->redirectToRoute('fundraiser_show', array('id' => $fundraiser->getId()));
         }
 
-        return $this->render('fundraiser/review.html.twig', array(
-            'form' => $reviewForm->createView(),
+        return $this->render('fundraiser/show.html.twig', array(
+            'fundraiser' => $fundraiser,
+            'form' => $form->createView(),
         ));
     }
 
@@ -214,7 +180,7 @@ class FundraiserController extends Controller
         ));
     }
 
-    /**
+    /* NOTE: COMMENTED OUT
      * Deletes a fundraiser entity.
      *
      * @Route("/{id}", name="fundraiser_delete")
@@ -234,7 +200,7 @@ class FundraiserController extends Controller
         return $this->redirectToRoute('fundraiser_index');
     }
 
-    /**
+    /*NOTE: COMMENTED OUT
      * Creates a form to delete a fundraiser entity.
      *
      * @param Fundraiser $fundraiser The fundraiser entity

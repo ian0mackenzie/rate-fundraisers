@@ -1,0 +1,10 @@
+{% extends "base.html.twig" %}
+{% trans_default_domain 'FOSUserBundle' %}
+{% block body %}
+	<h2 class="text-center">You Have Been Registered!</h2>
+    <p class="text-center">{{ 'registration.confirmed'|trans({'%username%': user.username}) }}</p>
+    {% if targetUrl %}
+    <p class="text-center"><a href="{{ targetUrl }}">{{ 'registration.back'|trans }}</a></p>
+    {% endif %}
+    <p class="text-center">Take a look at some <a href="{{path('fundraiser_index')}}">fundraisers</a> or <a href="{{path('fundraiser_new')}}">create a new one</a>!</p>
+{% endblock body %}

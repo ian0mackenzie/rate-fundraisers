@@ -1,17 +1,9 @@
-{% block body_id 'fundraiserindex' %}
-<div class="row">
-    {% for fundraiser in fundraisers %}
-        <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
-            <div class="thumbnail">
-                {% if fundraiser.thumbnail is defined %}
-                <img src="{{ fundraiser.thumbnail }}" alt="Thumbnail for {{ fundraiser.name }}">
-                {% endif %}
-                <div class="caption">
-                    <h3>{{ fundraiser.name }}</h3>
-                    <p>{{fundraiser.description }}</p>
-                    <p><a href="{{ path('fundraiser_show', { 'id': fundraiser.id }) }}" class="btn btn-primary" role="button">More</a></p>
-                </div>
-            </div>
-        </div>
-    {% endfor %}
+{% extends 'base.html.twig' %}
+{% block body %}
+<div class="container">
+    <div class="row">
+        <h2 class="text-center">All Fundraisers</h2>
+        {{ render(controller('AppBundle:Fundraiser:list')) }}
+    </div>
 </div>
+{% endblock %}

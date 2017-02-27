@@ -16,7 +16,7 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class ReviewController extends Controller
 {
-    /**
+    /*NOTE: COMMENTED OUT
      * Lists all review entities.
      *
      * @Route("/", name="review_index")
@@ -42,7 +42,7 @@ class ReviewController extends Controller
         ));
     }
 
-    /**
+    /*NOTE: COMMENTED OUT
      * Creates a new review entity.
      *
      * @Route("/new", name="review_new")
@@ -69,7 +69,7 @@ class ReviewController extends Controller
         ));
     }
 
-    /**
+    /*NOTE: COMMENTED OUT
      * Finds and displays a review entity.
      *
      * @Route("/{id}", name="review_show")
@@ -85,7 +85,7 @@ class ReviewController extends Controller
         ));
     }
 
-    /**
+    /*NOTE: COMMENTED OUT
      * Displays a form to edit an existing review entity.
      *
      * @Route("/{id}/edit", name="review_edit")
@@ -110,7 +110,7 @@ class ReviewController extends Controller
         ));
     }
 
-    /**
+    /*NOTE: COMMENTED OUT
      * Deletes a review entity.
      *
      * @Route("/{id}", name="review_delete")
@@ -130,7 +130,7 @@ class ReviewController extends Controller
         return $this->redirectToRoute('review_index');
     }
 
-    /**
+    /*NOTE: COMMENTED OUT
      * Creates a form to delete a review entity.
      *
      * @param Review $review The review entity

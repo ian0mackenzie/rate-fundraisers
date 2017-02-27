@@ -4,7 +4,7 @@ namespace AppBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
-
+use Symfony\Component\Validator\Constraints as Assert;
 /**
  * Review
  *
@@ -26,6 +26,7 @@ class Review
      * @var int
      *
      * @ORM\Column(name="rating", type="smallint")
+     * @Assert\NotBlank()
      */
     private $rating;
 
@@ -33,6 +34,7 @@ class Review
      * @var string
      *
      * @ORM\Column(name="title", type="string", length=255)
+     * @Assert\NotBlank()
      */
     private $title;
 
@@ -209,4 +211,6 @@ class Review
     {
         return $this->fundraiser;
     }
+
+
 }

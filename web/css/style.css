@@ -2,6 +2,11 @@ body {
 	padding-top: 70px;
 }
 
+.clear {
+    clear:both;
+    display: block;
+}
+
 body#homepage{
 	padding-top: 0px;
 }
@@ -12,8 +17,8 @@ body#homepage{
 }
 
 .header-wrapper .navbar-header {
-	float: right;
-	margin-top: 15px;
+    float: right;
+    margin-top: 5px;
 }
 
 #bs-example-navbar-collapse-1 li a {
@@ -35,7 +40,12 @@ h1.logo {
 	-o-transition: all 0.5s linear;
 	transition: all 0.5s linear;
     white-space: nowrap;
+    margin-top: 8px;
+}
 
+.width-constraint {
+    max-width: 600px;
+    margin: 0 auto;
 }
 
 .thumbnail img {
@@ -86,11 +96,15 @@ h1.logo {
 	white-space: nowrap;
 }
 
+#fundraiserpage .media-left .stars {
+    color: #f70;
+}
+
 .navbar-default {
 	border-bottom: none;
 }
 
- #form_review_rating {
+ #appbundle_review_rating {
     float:left;
     border:none;
     clear: both;
@@ -99,14 +113,14 @@ h1.logo {
     overflow: auto;
 }
 
-#form_review_rating:not(:checked) > input {
+#appbundle_review_rating:not(:checked) > input {
     position:absolute;
     top:-9999px;
     clip:rect(0, 0, 0, 0);
     display: none;
 }
 
-#form_review_rating:not(:checked) > label {
+#appbundle_review_rating:not(:checked) > label {
     float: right;
     width:1em;
     padding:0 .1em;
@@ -117,20 +131,20 @@ h1.logo {
     line-height:1.2;
     color:#ddd;
 }
-#form_review_rating:not(:checked) > label:before {
+#appbundle_review_rating:not(:checked) > label:before {
     content:'★ ';
 }
-#form_review_rating > input:checked ~ label {
+#appbundle_review_rating > input:checked ~ label {
     color: #f70;
 }
-#form_review_rating:not(:checked) > label:hover, 
-#form_review_rating:not(:checked) > label:hover ~ label  {
+#appbundle_review_rating:not(:checked) > label:hover, 
+#appbundle_review_rating:not(:checked) > label:hover ~ label  {
     color: gold;
 }
-#form_review_rating > input:checked + label:hover, 
-#form_review_rating > input:checked + label:hover ~ label, 
-#form_review_rating > input:checked ~ label:hover, 
-#form_review_rating > input:checked ~ label:hover ~ label {
+#appbundle_review_rating > input:checked + label:hover, 
+#appbundle_review_rating > input:checked + label:hover ~ label, 
+#appbundle_review_rating > input:checked ~ label:hover, 
+#appbundle_review_rating > input:checked ~ label:hover ~ label {
     color: #ea0;
 }
 #form_review_rating > label:active {
@@ -139,6 +153,101 @@ h1.logo {
 
 #fundraiserpage label {
 	display: block;
+}
+/*.thumbnail .caption {
+
+}
+
+.thumbnail .caption p.padded{
+    padding-bottom: 65px;
+}
+
+
+.thumbnail {
+    position: relative;
+}
+
+.thumbnail .btn.btn-primary {
+    bottom: 11px;
+    box-sizing: border-box;
+    left: 0;
+    margin: auto;
+    position: absolute;
+    right: 0;
+    width: 86%;
+}*/
+
+#main {
+    margin-bottom: 60px;
+    min-height: 600px;
+}
+
+footer {
+    background: black none repeat scroll 0 0;
+    color: white;
+    text-align: center;
+    padding-top: 20px;
+    padding-bottom: 40px;
+}
+
+footer span {
+    color: white;
+    float: none;
+    text-decoration: underline;
+    white-space: nowrap;
+    font-family: "Patua One",cursive;
+}
+
+footer nav {
+
+}
+
+footer nav ul {
+    display: block;
+    width: 100%;
+}
+
+footer nav#bs-example-navbar-collapse-1 ul li {
+    display: inline;
+    float: none;
+}
+
+.nav > li > a:focus, .nav > li > a:hover{
+    background: transparent;
+}
+
+p.reviews-button {
+    display: block;
+    clear: both;
+    width: 86%;
+    margin: 0 auto;
+}
+
+p.reviews-button a {
+    display: block;
+    width: 100%;
+}
+
+.new-fr {
+    background: rgba(0, 0, 0, 0) url("/images/new-fr-bg.jpg") repeat scroll 0 0;
+    color: white;
+    display: block;
+    font-family: "Patua One",cursive;
+    font-size: 24px;
+    font-weight: bold;
+    height: 200px;
+    line-height: 200px;
+    text-align: center;
+    text-decoration: none;
+    text-transform: uppercase;
+}
+
+a.new-fr:hover {
+    color: white;
+}
+
+.new-fr span {
+    
 }
 
 @media only screen and (max-width: 1440px)  {

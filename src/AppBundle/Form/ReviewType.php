@@ -23,15 +23,16 @@ class ReviewType extends AbstractType
 
         $builder->add('title');
         $builder->add('rating', ChoiceType::class, array(
-            'choices' => array('1' => '1', '2' => '2', '3' => '3', '4' => '4', '5' =>'5'),
+            'choices' => array('5' => '5', '4' => '4', '3' => '3', '2' => '2', '1' =>'1'),
             'expanded' => true,
-            
             'multiple' => false,
             'choice_attr' => function($val, $key, $index) {
                 return ['class' => 'rating'];
             }
         ));
-        $builder->add('review')->add('author')->add('author', AuthorType::class, array("label" => FALSE));
+        $builder->add('review');
+        //Removed when switching to registration
+        //->add('author', AuthorType::class, array("label" => FALSE));
 
     }
     

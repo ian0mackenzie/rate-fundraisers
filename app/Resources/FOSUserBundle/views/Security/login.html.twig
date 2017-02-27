@@ -1,0 +1,17 @@
+{% extends "base.html.twig" %}
+
+{% block body_id %}login{% endblock body_id %}
+
+{% block body %}
+	<div class="page-header"><h1>Log In</h1></div>
+	<div class="width-constraint">
+		<p>Please enter your login information below.</p>
+		{% if is_granted('ROLE_USER') -%}
+		<p>You are already logged in. Would you like to <a href="{{ path('fos_user_security_logout') }}">log out?</a></p>
+		{% else %}
+	    {{ include('@fos_override/Security/login_content.html.twig') }}
+	    {% endif %}
+	    <p>Don't have a username? <a href="{{ path('fos_user_registration_register') }}">Sign Up Here!</a></p>
+	    <p><a href="{{path('fos_user_resetting_request')}}">Forgot your password?</a></p>
+    </div>
+{% endblock body %}
