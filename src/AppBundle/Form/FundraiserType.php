@@ -2,54 +2,40 @@
 
 namespace AppBundle\Form;
 
-use Doctrine\Common\Persistence\ObjectManager;
+use AppBundle\Entity\Fundraiser;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class FundraiserType extends AbstractType
 {
-
     private $manager;
 
-
-    public function __construct(ObjectManager $manager)
+    public function __construct(EntityManagerInterface $manager)
     {
         $this->manager = $manager;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function buildForm(FormBuilderInterface $builder, array $options)
+    public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-
         $builder->add('name')->add('description')->add('thumbnail');
 
         //We'll handle dates. Don't want users to access that.
         //$builder->add('createdDate');
 
         //$builder->get('author')->addModelTransformer($transformer);
-
     }
     
-    /**
-     * {@inheritdoc}
-     */
-    public function configureOptions(OptionsResolver $resolver)
+    public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults(array(
-            'data_class' => 'AppBundle\Entity\Fundraiser'
-        ));
+        $resolver->setDefaults([
+            'data_class' => Fundraiser::class
+        ]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getBlockPrefix()
+    public function getBlockPrefix(): string
     {
         return 'appbundle_fundraiser';
     }
-
-
 }
