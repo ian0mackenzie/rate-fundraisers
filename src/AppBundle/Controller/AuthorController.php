@@ -3,136 +3,113 @@
 namespace AppBundle\Controller;
 
 use AppBundle\Entity\Author;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use AppBundle\Form\AuthorType;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
-use AppBundle\General\HelperClass;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
 
-/**
- * Author controller.
- *
- * @Route("author")
- */
-class AuthorController extends Controller
+#[Route('/author')]
+class AuthorController extends AbstractController
 {
-    /**
-     * Lists all author entities.
-     *
-     * @Route("/", name="author_index")
-     * @Method("GET")
-     */
-    public function indexAction()
+    #[Route('/', name: 'author_index', methods: ['GET'])]
+    public function indexAction(EntityManagerInterface $em): Response
     {
-        $em = $this->getDoctrine()->getManager();
+        $authors = $em->getRepository(Author::class)->findAll();
 
-        $authors = $em->getRepository('AppBundle:Author')->findAll();
-
-        return $this->render('author/index.html.twig', array(
+        return $this->render('author/index.html.twig', [
             'authors' => $authors,
-        ));
+        ]);
     }
 
     /*NOTE: COMMENTED OUT
      * Creates a new author entity.
-     *
-     * @Route("/new", name="author_new")
-     * @Method({"GET", "POST"})
      */
-    public function newAction(Request $request)
+    #[Route('/new', name: 'author_new', methods: ['GET', 'POST'])]
+    public function newAction(Request $request, EntityManagerInterface $em): Response
     {
         $author = new Author();
-        $form = $this->createForm('AppBundle\Form\AuthorType', $author);
+        $form = $this->createForm(AuthorType::class, $author);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-
-            $em = $this->getDoctrine()->getManager();
             // check to see if the email already exists.
             $existingAuthor = $em
-                ->getRepository('AppBundle:Author')
+                ->getRepository(Author::class)
                 ->findOneByEmail($author->getEmail());
 
             if ($existingAuthor) {
-
                 //if the email does exist, grab the incoming name and update the existing name with it.
                 $existingAuthor->setFirstName($author->getFirstName());
                 $existingAuthor->setLastName($author->getLastName());
                 $author = $existingAuthor;
-
             } else {
                 //Other wise it's a new author. Set the creation timestamp.
                 $date = new \DateTime("now");
                 $author->setCreatedDate($date);
             }
             $em->persist($author);
-            $em->flush($author);
+            $em->flush();
 
-            return $this->redirectToRoute('author_show', array('id' => $author->getId()));
+            return $this->redirectToRoute('author_show', ['id' => $author->getId()]);
         }
 
-        return $this->render('author/new.html.twig', array(
+        return $this->render('author/new.html.twig', [
             'author' => $author,
             'form' => $form->createView(),
-        ));
+        ]);
     }
 
     /*NOTE: COMMENTED OUT
      * Finds and displays a author entity.
-     *
-     * @Route("/{id}", name="author_show")
-     * @Method("GET")
      */
-    public function showAction(Author $author)
+    #[Route('/{id}', name: 'author_show', methods: ['GET'])]
+    public function showAction(Author $author): Response
     {
         $deleteForm = $this->createDeleteForm($author);
 
-        return $this->render('author/show.html.twig', array(
+        return $this->render('author/show.html.twig', [
             'author' => $author,
             'delete_form' => $deleteForm->createView(),
-        ));
+        ]);
     }
 
     /*NOTE: COMMENTED OUT
      * Displays a form to edit an existing author entity.
-     *
-     * @Route("/{id}/edit", name="author_edit")
-     * @Method({"GET", "POST"})
      */
-    public function editAction(Request $request, Author $author)
+    #[Route('/{id}/edit', name: 'author_edit', methods: ['GET', 'POST'])]
+    public function editAction(Request $request, Author $author, EntityManagerInterface $em): Response
     {
         $deleteForm = $this->createDeleteForm($author);
-        $editForm = $this->createForm('AppBundle\Form\AuthorType', $author);
+        $editForm = $this->createForm(AuthorType::class, $author);
         $editForm->handleRequest($request);
 
         if ($editForm->isSubmitted() && $editForm->isValid()) {
-            $this->getDoctrine()->getManager()->flush();
+            $em->flush();
 
-            return $this->redirectToRoute('author_edit', array('id' => $author->getId()));
+            return $this->redirectToRoute('author_edit', ['id' => $author->getId()]);
         }
 
-        return $this->render('author/edit.html.twig', array(
+        return $this->render('author/edit.html.twig', [
             'author' => $author,
             'edit_form' => $editForm->createView(),
             'delete_form' => $deleteForm->createView(),
-        ));
+        ]);
     }
 
     /*NOTE: COMMENTED OUT
      * Deletes a author entity.
-     *
-     * @Route("/{id}", name="author_delete")
-     * @Method("DELETE")
      */
-    public function deleteAction(Request $request, Author $author)
+    #[Route('/{id}', name: 'author_delete', methods: ['DELETE'])]
+    public function deleteAction(Request $request, Author $author, EntityManagerInterface $em): Response
     {
         $form = $this->createDeleteForm($author);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $em = $this->getDoctrine()->getManager();
             $em->remove($author);
-            $em->flush($author);
+            $em->flush();
         }
 
         return $this->redirectToRoute('author_index');
@@ -148,7 +125,7 @@ class AuthorController extends Controller
     private function createDeleteForm(Author $author)
     {
         return $this->createFormBuilder()
-            ->setAction($this->generateUrl('author_delete', array('id' => $author->getId())))
+            ->setAction($this->generateUrl('author_delete', ['id' => $author->getId()]))
             ->setMethod('DELETE')
             ->getForm()
         ;
