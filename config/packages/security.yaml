@@ -19,8 +19,9 @@ security:
             provider: app_user_provider
             form_login:
                 login_path: fos_user_security_login
-                check_path: fos_user_security_check
+                check_path: fos_user_security_login
                 default_target_path: /
+                enable_csrf: true
             logout:
                 path: fos_user_security_logout
                 target: /

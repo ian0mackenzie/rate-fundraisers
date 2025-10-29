@@ -3,8 +3,3 @@ controllers:
         path: ../src/AppBundle/Controller/
         namespace: AppBundle\Controller
     type: attribute
-
-# For now, keep old annotation style support
-app_bundle_controllers:
-    resource: ../src/AppBundle/Controller/
-    type: annotation
