@@ -38,9 +38,6 @@ class Author implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: "string")]
     private ?string $password = null;
 
-    #[ORM\Column(type: "string")]
-    private ?string $password = null;
-
     /**
      * @var string
      */
