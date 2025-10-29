@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db:
     image: mysql:5.7
@@ -31,7 +29,6 @@ services:
       - "8080:80"
     volumes:
       - .:/var/www/html
-      - /var/www/html/vendor
       - /var/www/html/var/cache
       - /var/www/html/var/logs
       - /var/www/html/var/sessions

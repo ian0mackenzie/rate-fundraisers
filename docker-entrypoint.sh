@@ -1,6 +1,17 @@
 #!/bin/bash
 set -e
 
+echo "Installing Composer dependencies..."
+if [ ! -d "vendor" ]; then
+    # Install without scripts to avoid compatibility issues
+    composer install --no-interaction --optimize-autoloader --no-dev --no-scripts
+    
+    # Create parameters.yml from distribution file
+    if [ ! -f app/config/parameters.yml ]; then
+        cp app/config/parameters.yml.dist app/config/parameters.yml
+    fi
+fi
+
 # Wait for database to be ready
 echo "Waiting for database to be ready..."
 until php -r "new PDO('mysql:host=${DATABASE_HOST};port=${DATABASE_PORT};dbname=${DATABASE_NAME}', '${DATABASE_USER}', '${DATABASE_PASSWORD}');" 2>/dev/null; do
@@ -10,10 +21,9 @@ done
 
 echo "Database is ready!"
 
-# Create parameters.yml from environment variables if it doesn't exist
-if [ ! -f app/config/parameters.yml ]; then
-    echo "Creating parameters.yml from environment variables..."
-    cat > app/config/parameters.yml <<EOF
+# Update parameters.yml with environment variables
+echo "Updating parameters.yml with environment variables..."
+cat > app/config/parameters.yml <<EOF
 parameters:
     database_host: ${DATABASE_HOST:-db}
     database_port: ${DATABASE_PORT:-3306}
@@ -22,10 +32,15 @@ parameters:
     database_password: ${DATABASE_PASSWORD:-symfony}
     mailer_transport: smtp
     mailer_host: 127.0.0.1
-    mailer_user: null
+    mailer_user: noreply@example.com
     mailer_password: null
     secret: ThisTokenIsNotSoSecretChangeIt
 EOF
+
+# Create bootstrap file if it doesn't exist
+if [ ! -f var/bootstrap.php.cache ]; then
+    echo "Creating bootstrap file..."
+    touch var/bootstrap.php.cache
 fi
 
 # Clear cache
