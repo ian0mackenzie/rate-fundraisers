@@ -15,7 +15,7 @@
     </div>
 </div></div>
 
-{{ render(controller('AppBundle:Review:index', {'fundraiser_id': fundraiser.id})) }}
+{{ render(controller('AppBundle\\Controller\\ReviewController::indexAction', {'fundraiser_id': fundraiser.id})) }}
 
 {% if is_granted('ROLE_USER') -%}
 	<h2>Submit a new review:</h2>
@@ -42,7 +42,7 @@
 
 {% else %}
 	<h3>Log In To Leave A Review!</h3>
-	<p>Click <a href="{{ path('fos_user_security_login') }}">here</a> to log in or <a href="{{ path('fos_user_registration_register') }}">here</a> to register</p>
+	<p>Click <a href="{{ path('fos_user_security_login') }}">here</a> to log in</p>
 {% endif %}
 
 {% endblock %}

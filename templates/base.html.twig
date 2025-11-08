@@ -60,7 +60,7 @@
 			        <span class="icon-bar"></span>
 				</button>
 			{{ render(controller(
-				'AppBundle:Menu:index'
+				'AppBundle\\Controller\\MenuController::indexAction'
 			)) }}
 
 		</div>
@@ -72,7 +72,7 @@
 	    </div>
     </div>
     <footer>
-		{{ render(controller('AppBundle:Menu:index')) }}
+		{{ render(controller('AppBundle\\Controller\\MenuController::indexAction')) }}
 		<p>&copy; Copyright {{"now"|date("Y")}} <span>gRATE FUNDRAI$ER$</span></p>
     </footer>
     </body>
