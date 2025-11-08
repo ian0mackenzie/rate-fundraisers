@@ -1,0 +1,24 @@
+{% extends 'base.html.twig' %}
+
+{% block body_id 'homepage' %}
+
+{% block foldcontent%}
+<div class="header-image">
+    <div class="container-fluid">
+        <div class="jumbotron">
+            <p>The place to list fundraisers and rate them. Sign up now to list your fundraiser and leave reviews of your own!</p>
+            <p><a class="btn btn-primary btn-lg" href="{{ path('fos_user_registration_register') }}">Sign Up</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="row">
+        <h2 class="text-center">See Our Fundraisers</h2>
+        {{ render(controller('AppBundle\\Controller\\FundraiserController::listAction', {'sort_by': 'average-rating'})) }}
+        <a class="new-fr" href="{{path('fundraiser_new')}}"><span>Add a New Fundraiser</span></a>
+    </div>
+</div>
+{% endblock %}

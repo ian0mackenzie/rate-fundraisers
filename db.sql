@@ -25,23 +25,15 @@ DROP TABLE IF EXISTS `author`;
 CREATE TABLE `author` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `username` varchar(180) COLLATE utf8_unicode_ci NOT NULL,
-  `username_canonical` varchar(180) COLLATE utf8_unicode_ci NOT NULL,
   `email` varchar(180) COLLATE utf8_unicode_ci NOT NULL,
-  `email_canonical` varchar(180) COLLATE utf8_unicode_ci NOT NULL,
-  `enabled` tinyint(1) NOT NULL,
-  `salt` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `password` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `last_login` datetime DEFAULT NULL,
-  `confirmation_token` varchar(180) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `password_requested_at` datetime DEFAULT NULL,
-  `roles` longtext COLLATE utf8_unicode_ci NOT NULL COMMENT '(DC2Type:array)',
+  `roles` longtext COLLATE utf8_unicode_ci NOT NULL COMMENT '(DC2Type:json)',
   `first_name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `last_name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `created_date` datetime NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `UNIQ_BDAFD8C892FC23A8` (`username_canonical`),
-  UNIQUE KEY `UNIQ_BDAFD8C8A0D96FBF` (`email_canonical`),
-  UNIQUE KEY `UNIQ_BDAFD8C8C05FB297` (`confirmation_token`)
+  UNIQUE KEY `UNIQ_BDAFD8C8F85E0677` (`username`),
+  UNIQUE KEY `UNIQ_BDAFD8C8E7927C74` (`email`)
 ) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -51,7 +43,7 @@ CREATE TABLE `author` (
 
 LOCK TABLES `author` WRITE;
 /*!40000 ALTER TABLE `author` DISABLE KEYS */;
-INSERT INTO `author` VALUES (1,'ian0mackenzie','ian0mackenzie','ian0mackenzie@gmail.com','ian0mackenzie@gmail.com',1,NULL,'$2y$13$7u.x5az6/F461JQ85/TnZu4/BMAazzwtfoPUFlN7m76PV4PoDBiqC','2017-02-27 08:11:21',NULL,NULL,'N;','Ian','Mackenzie','2017-02-23 11:10:44'),(2,'michelle0mackenzie','michelle0mackenzie','michelle0mackenzie@gmail.com','michelle0mackenzie@gmail.com',1,NULL,'$2y$13$saI2dZpUPZyfufwXACAfLuBaEKRhkJwfftur0bKPhDJUPTl6PEqkq','2017-02-26 20:48:17','rzWs2mRbQ2UK4aV9MPafk-wpt1JH9wNot23-eIj_nWw','2017-02-24 10:40:08','N;','Michelle','Mackenzie','2017-02-23 12:28:42'),(3,'colbydog','colbydog','colby.dog@gmail.com','colby.dog@gmail.com',1,NULL,'$2y$13$4aQL23GVMRNgM22gJhq6BO9330zNFLJAYJUfkXNSwADpvLjl0gwHS','2017-02-23 20:02:35',NULL,NULL,'N;','Colby','Dog','2017-02-23 20:02:35'),(4,'ian0mackenzie2','ian0mackenzie2','ian0mackenzie2@gmail.com','ian0mackenzie2@gmail.com',1,NULL,'$2y$13$1eeTEP2JY7YduFFxSiRhr.PmpzGikfbBUDEGC30RM4IZB.iAJYhg6','2017-02-27 08:15:07',NULL,NULL,'N;','Ian2','Mackenzie2','2017-02-24 16:30:26'),(5,'ian0mackenzie3','ian0mackenzie3','ian0mackenzie3@gmail.com','ian0mackenzie3@gmail.com',1,NULL,'$2y$13$IzoBHY5T4a4Yd/RpKNRmeeBaT2DsmuAF/8/gjkNTnNnCCcrzwKBLG','2017-02-27 08:15:17',NULL,NULL,'N;','Ian','Mackenzie','2017-02-24 16:56:02'),(6,'IaMackroy','iamackroy','123fakestreet@fakeemail.com','123fakestreet@fakeemail.com',1,NULL,'$2y$13$B.m8gdr3Oq2R/CTMeOpZ1.E2zlqX7n8OnRPe8RNuEtEBdgMdBJIne','2017-02-24 18:31:42',NULL,NULL,'N;','Ianonius','Mackroy','2017-02-24 18:31:41'),(7,'colmac','colmac','colmac@gmail.com','colmac@gmail.com',1,NULL,'$2y$13$/uOfa6VvdKG9XM9zLWxSGu7nX.sNsVA5dhAXXzORT3hMjHeS0v91S','2017-02-26 21:00:18',NULL,NULL,'N;','colin','mackenzie','2017-02-26 21:00:18'),(8,'ian0mackenzie4','ian0mackenzie4','ian0mackenzie4@gmail.com','ian0mackenzie4@gmail.com',1,NULL,'$2y$13$Y18pUUnRMU4TODNF6CJVrOasGWdH1tp.TSK7QsWsvp9Ogycm3057u','2017-02-27 08:15:57',NULL,NULL,'N;','Ian4','Mackenzie4','2017-02-27 08:15:57');
+INSERT INTO `author` VALUES (1,'ian0mackenzie','ian0mackenzie@gmail.com','$2y$13$7u.x5az6/F461JQ85/TnZu4/BMAazzwtfoPUFlN7m76PV4PoDBiqC','[\"ROLE_USER\"]','Ian','Mackenzie','2017-02-23 11:10:44'),(2,'michelle0mackenzie','michelle0mackenzie@gmail.com','$2y$13$saI2dZpUPZyfufwXACAfLuBaEKRhkJwfftur0bKPhDJUPTl6PEqkq','[\"ROLE_USER\"]','Michelle','Mackenzie','2017-02-23 12:28:42'),(3,'colbydog','colby.dog@gmail.com','$2y$13$4aQL23GVMRNgM22gJhq6BO9330zNFLJAYJUfkXNSwADpvLjl0gwHS','[\"ROLE_USER\"]','Colby','Dog','2017-02-23 20:02:35'),(4,'ian0mackenzie2','ian0mackenzie2@gmail.com','$2y$13$1eeTEP2JY7YduFFxSiRhr.PmpzGikfbBUDEGC30RM4IZB.iAJYhg6','[\"ROLE_USER\"]','Ian2','Mackenzie2','2017-02-24 16:30:26'),(5,'ian0mackenzie3','ian0mackenzie3@gmail.com','$2y$13$IzoBHY5T4a4Yd/RpKNRmeeBaT2DsmuAF/8/gjkNTnNnCCcrzwKBLG','[\"ROLE_USER\"]','Ian','Mackenzie','2017-02-24 16:56:02'),(6,'IaMackroy','123fakestreet@fakeemail.com','$2y$13$B.m8gdr3Oq2R/CTMeOpZ1.E2zlqX7n8OnRPe8RNuEtEBdgMdBJIne','[\"ROLE_USER\"]','Ianonius','Mackroy','2017-02-24 18:31:41'),(7,'colmac','colmac@gmail.com','$2y$13$/uOfa6VvdKG9XM9zLWxSGu7nX.sNsVA5dhAXXzORT3hMjHeS0v91S','[\"ROLE_USER\"]','colin','mackenzie','2017-02-26 21:00:18'),(8,'ian0mackenzie4','ian0mackenzie4@gmail.com','$2y$13$Y18pUUnRMU4TODNF6CJVrOasGWdH1tp.TSK7QsWsvp9Ogycm3057u','[\"ROLE_USER\"]','Ian4','Mackenzie4','2017-02-27 08:15:57');
 /*!40000 ALTER TABLE `author` ENABLE KEYS */;
 UNLOCK TABLES;
 

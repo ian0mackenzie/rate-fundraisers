@@ -21,20 +21,18 @@ class FundraiserRepository extends ServiceEntityRepository
 
     public function getFundraisersByAverageRating(string $orderBy): array
     {
-        $em = $this->getEntityManager();
+        $qb = $this->createQueryBuilder('f')
+            ->leftJoin('f.reviews', 'r')
+            ->groupBy('f.id');
 
-        $queryString = '
-            SELECT Fundraiser.id, Fundraiser.name, Fundraiser.description, Fundraiser.thumbnail, Fundraiser.createdDate,AVG(Review.rating) as avg_rating
-            FROM AppBundle:Fundraiser Fundraiser
-            LEFT JOIN AppBundle:Review Review
-            WHERE Fundraiser.id = Review.fundraiser
-            GROUP BY Fundraiser.id ORDER BY';
+        if ($orderBy === "avg_rating") {
+            // For sorting by average rating, we calculate it in the query
+            $qb->addSelect('AVG(r.rating) as HIDDEN avg_rating')
+               ->orderBy('avg_rating', 'DESC');
+        } else {
+            $qb->orderBy('f.name', 'ASC');
+        }
 
-        $queryString .= ($orderBy === "avg_rating") ? " avg_rating DESC" : " Fundraiser.name ASC";
-
-        $query = $em->createQuery($queryString);
-        $result = $query->getResult();
-
-        return $result;
+        return $qb->getQuery()->getResult();
     }
 }

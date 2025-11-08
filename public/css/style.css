@@ -1,0 +1,293 @@
+body {
+	padding-top: 70px;
+}
+
+.clear {
+    clear:both;
+    display: block;
+}
+
+body#homepage{
+	padding-top: 0px;
+}
+
+#siteHeader {
+    background: rgba(0, 0, 0, 0.6) none repeat scroll 0 0;
+    transition: all 0.5s ease 0s;
+}
+
+.header-wrapper .navbar-header {
+    float: right;
+    margin-top: 5px;
+}
+
+#bs-example-navbar-collapse-1 li a {
+	color: white;
+}
+
+.patua {
+	font-family: "Patua One",cursive;
+}
+
+h1.logo {
+    color: white;
+    float: left;
+    visibility: hidden;
+    opacity: 0;
+    text-decoration: underline;
+	-webkit-transition: all 0.5s linear;
+	-moz-transition: all 0.5s linear;
+	-o-transition: all 0.5s linear;
+	transition: all 0.5s linear;
+    white-space: nowrap;
+    margin-top: 8px;
+}
+
+.width-constraint {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.thumbnail img {
+    height: 509px;
+    width: 100%;
+}
+
+#siteHeader h1.logo {
+    visibility: visible;
+    opacity: 1;
+}
+
+.header-wrapper {
+    margin: 0 auto;
+    max-width: 1170px;
+    padding-left: 20px;
+    padding-right: 20px;
+    width: 100%;
+}
+
+#homepage .header-image {
+    background: rgba(0, 0, 0, 0) url("../images/money.jpg") repeat scroll 0 0 / 100% auto;
+    padding: 279px 25% 480px;
+}
+
+.jumbotron {
+    background-color: rgba(255, 255, 255, 0.6);
+}
+.navbar-default .navbar-toggle:focus, .navbar-default .navbar-toggle:hover {
+    background-color: transparent;
+}
+
+.navbar-default .navbar-collapse, .navbar-default .navbar-form {
+    border-color: transparent;
+    clear: both;
+}
+
+#fundraiserpage img {
+	max-width: 400px;
+	max-height: 300px;
+}
+
+#fundraiserpage .reviews .media {
+	border-bottom: 1px solid #e3e3e3;
+}
+
+#fundraiserpage .media-left{
+	white-space: nowrap;
+}
+
+#fundraiserpage .media-left .stars {
+    color: #f70;
+}
+
+.navbar-default {
+	border-bottom: none;
+}
+
+ #appbundle_review_rating {
+    float:left;
+    border:none;
+    clear: both;
+    float: none;
+    display: inline-block;
+    overflow: auto;
+}
+
+#appbundle_review_rating:not(:checked) > input {
+    position:absolute;
+    top:-9999px;
+    clip:rect(0, 0, 0, 0);
+    display: none;
+}
+
+#appbundle_review_rating:not(:checked) > label {
+    float: right;
+    width:1em;
+    padding:0 .1em;
+    overflow:hidden;
+    white-space:nowrap;
+    cursor:pointer;
+    font-size:200%;
+    line-height:1.2;
+    color:#ddd;
+}
+#appbundle_review_rating:not(:checked) > label:before {
+    content:'★ ';
+}
+#appbundle_review_rating > input:checked ~ label {
+    color: #f70;
+}
+#appbundle_review_rating:not(:checked) > label:hover, 
+#appbundle_review_rating:not(:checked) > label:hover ~ label  {
+    color: gold;
+}
+#appbundle_review_rating > input:checked + label:hover, 
+#appbundle_review_rating > input:checked + label:hover ~ label, 
+#appbundle_review_rating > input:checked ~ label:hover, 
+#appbundle_review_rating > input:checked ~ label:hover ~ label {
+    color: #ea0;
+}
+#form_review_rating > label:active {
+    position:relative;
+}
+
+#fundraiserpage label {
+	display: block;
+}
+/*.thumbnail .caption {
+
+}
+
+.thumbnail .caption p.padded{
+    padding-bottom: 65px;
+}
+
+
+.thumbnail {
+    position: relative;
+}
+
+.thumbnail .btn.btn-primary {
+    bottom: 11px;
+    box-sizing: border-box;
+    left: 0;
+    margin: auto;
+    position: absolute;
+    right: 0;
+    width: 86%;
+}*/
+
+#main {
+    margin-bottom: 60px;
+    min-height: 600px;
+}
+
+footer {
+    background: black none repeat scroll 0 0;
+    color: white;
+    text-align: center;
+    padding-top: 20px;
+    padding-bottom: 40px;
+}
+
+footer span {
+    color: white;
+    float: none;
+    text-decoration: underline;
+    white-space: nowrap;
+    font-family: "Patua One",cursive;
+}
+
+footer nav {
+
+}
+
+footer nav ul {
+    display: block;
+    width: 100%;
+}
+
+footer nav#bs-example-navbar-collapse-1 ul li {
+    display: inline;
+    float: none;
+}
+
+.nav > li > a:focus, .nav > li > a:hover{
+    background: transparent;
+}
+
+p.reviews-button {
+    display: block;
+    clear: both;
+    width: 86%;
+    margin: 0 auto;
+}
+
+p.reviews-button a {
+    display: block;
+    width: 100%;
+}
+
+.new-fr {
+    background: rgba(0, 0, 0, 0) url("/images/new-fr-bg.jpg") repeat scroll 0 0;
+    color: white;
+    display: block;
+    font-family: "Patua One",cursive;
+    font-size: 24px;
+    font-weight: bold;
+    height: 200px;
+    line-height: 200px;
+    text-align: center;
+    text-decoration: none;
+    text-transform: uppercase;
+}
+
+a.new-fr:hover {
+    color: white;
+}
+
+.new-fr span {
+    
+}
+
+@media only screen and (max-width: 1440px)  {
+
+	#homepage .header-image {
+    	background: rgba(0, 0, 0, 0) url("../images/money.jpg") repeat scroll 0 0 / auto 100%;
+    }
+}
+
+@media only screen and (max-width: 1170px)  {
+
+
+	#homepage .header-image {
+	    padding: 279px 10% 480px;
+	}
+
+}
+
+@media only screen and (max-width: 970px)  {
+
+	#homepage .header-image {
+	    padding: 279px 5% 480px;
+	}
+
+}
+
+@media only screen and (max-width: 768px)  {
+
+	.navbar-default .navbar-collapse, .navbar-default .navbar-form {
+	    clear: both;
+	}
+
+	.header-wrapper .navbar-header {
+		float: none;
+	    margin-top: 9px;
+	}
+
+	h1.logo {
+	    font-size: 27px;
+	    margin-top: 12px;
+	}
+
+}

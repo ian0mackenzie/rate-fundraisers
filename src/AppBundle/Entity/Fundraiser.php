@@ -6,65 +6,37 @@ use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
-/**
- * Fundraiser
- *
- * @ORM\Table(name="fundraiser")
- * @ORM\Entity(repositoryClass="AppBundle\Repository\FundraiserRepository")
- * @UniqueEntity(fields={"name"}, message="Note: That fundraiser already existed.")
- */
+
+#[ORM\Table(name: "fundraiser")]
+#[ORM\Entity(repositoryClass: "AppBundle\Repository\FundraiserRepository")]
+#[UniqueEntity(fields: ["name"], message: "Note: That fundraiser already existed.")]
 class Fundraiser
 {
-    /**
-     * @var int
-     *
-     * @ORM\Column(name="id", type="integer")
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="AUTO")
-     */
+    #[ORM\Column(name: "id", type: "integer")]
+    #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: "AUTO")]
     private $id;
 
-    /**
-     * @var string
-     *
-     * @ORM\Column(name="name", type="string", length=255, unique=true)
-     * @Assert\NotBlank()
-     */
+    #[ORM\Column(name: "name", type: "string", length: 255, unique: true)]
+    #[Assert\NotBlank()]
     private $name;
 
-    /**
-     * @var string
-     *
-     * @ORM\Column(name="description", type="text", nullable=true)
-     * @Assert\NotBlank()
-     */
+    #[ORM\Column(name: "description", type: "text", nullable: true)]
+    #[Assert\NotBlank()]
     private $description;
 
-    /**
-     * @var string
-     *
-     * @ORM\Column(name="thumbnail", type="string", length=255, nullable=true)
-     */
+    #[ORM\Column(name: "thumbnail", type: "string", length: 255, nullable: true)]
     private $thumbnail;
 
-    /**
-     * @var \DateTime
-     *
-     * @ORM\Column(name="created_date", type="datetime")
-     */
+    #[ORM\Column(name: "created_date", type: "datetime")]
     private $createdDate;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="Author", inversedBy="fundraisers", cascade={"persist"})
-     * @ORM\JoinColumn(name="author_id", referencedColumnName="id")
-     * @Assert\Valid()
-     */
+    #[ORM\ManyToOne(targetEntity: "Author", inversedBy: "fundraisers", cascade: ["persist"])]
+    #[ORM\JoinColumn(name: "author_id", referencedColumnName: "id")]
+    #[Assert\Valid()]
     private $author;
 
-
-    /**
-     * @ORM\OneToMany(targetEntity="Review", mappedBy="fundraiser")
-     */
+    #[ORM\OneToMany(targetEntity: "Review", mappedBy: "fundraiser")]
     private $reviews;
 
     public function __construct()
@@ -178,29 +150,7 @@ class Fundraiser
         return $this->createdDate;
     }
 
-    /**
-     * Set authorId
-     *
-     * @param integer $authorId
-     *
-     * @return Fundraiser
-     */
-    public function setAuthorId($authorId)
-    {
-        $this->authorId = $authorId;
 
-        return $this;
-    }
-
-    /**
-     * Get authorId
-     *
-     * @return int
-     */
-    public function getAuthorId()
-    {
-        return $this->authorId;
-    }
 
     /**
      * Set author
@@ -258,6 +208,27 @@ class Fundraiser
     public function getReviews()
     {
         return $this->reviews;
+    }
+
+    /**
+     * Calculate and return the average rating for this fundraiser
+     *
+     * @return float
+     */
+    public function getAvgRating(): float
+    {
+        $reviews = $this->getReviews();
+        
+        if ($reviews->isEmpty()) {
+            return 0.0;
+        }
+        
+        $total = 0;
+        foreach ($reviews as $review) {
+            $total += $review->getRating();
+        }
+        
+        return round($total / $reviews->count(), 1);
     }
 
     public function __toString() {

@@ -15,7 +15,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Table(name: "author")]
 #[ORM\Entity(repositoryClass: "AppBundle\Repository\AuthorRepository")]
 #[ORM\HasLifecycleCallbacks]
-#[UniqueEntity(fields: ["email"], message: "Note: author already exists")]
+#[UniqueEntity(fields: ["email"], message: "Note: email already exists")]
+#[UniqueEntity(fields: ["username"], message: "Note: username already exists")]
 class Author implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]

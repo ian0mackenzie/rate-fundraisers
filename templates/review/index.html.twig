@@ -1,0 +1,23 @@
+<div class="container-fluid reviews">
+    {% for review in reviews %}
+        <div class="media">
+        <h3 class="media-heading">{{ review.title }}</h3>
+            <div class="media-left media-top">
+                <p class="stars">
+                    {% for i in 0..4 %}
+                        {% if i < review.rating %}
+                        <span class="glyphicon glyphicon-star"></span>
+                        {% else %}
+                        <span class="glyphicon glyphicon-star-empty"></span>
+                        {% endif %}
+                    {% endfor %}
+                </p>
+            </div>
+            <div class="media-body">
+
+                <p>{{ review.review }}</p>
+                <p><strong>-{{ review.author.firstName }} {{ review.author.lastName }}</strong></p>
+            </div>
+        </div>
+    {% endfor %}
+</div>
