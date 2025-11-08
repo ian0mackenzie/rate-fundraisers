@@ -1,0 +1,36 @@
+# Ignore git files
+.git
+.gitignore
+
+# Ignore Docker files
+.dockerignore
+Dockerfile
+docker-compose*.yml
+compose*.yaml
+
+# Ignore var directory
+var/
+!var/.gitkeep
+
+# Ignore vendor
+vendor/
+
+# Ignore environment files
+.env.local
+.env.*.local
+
+# Ignore cache and logs
+var/cache/
+var/log/
+var/sessions/
+
+# Ignore node modules if present
+node_modules/
+
+# Ignore IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
