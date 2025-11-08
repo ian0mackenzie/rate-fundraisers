@@ -1,0 +1,48 @@
+{% extends 'base.html.twig' %}
+{% block body_id 'fundraiserpage' %}
+{% block body %}
+
+<h1>Fundraiser: {{ fundraiser.name }}</h1>
+
+<div class="well"><div class="media">
+    <div class="media-left media-top">
+        <img class="media-object" src="{{ fundraiser.thumbnail }}">
+    </div>
+    <div class="media-body">
+    
+        <h4 class="media-heading">{{ fundraiser.name }}</h4>
+        <p>{{ fundraiser.description }}</p>
+    </div>
+</div></div>
+
+{{ render(controller('AppBundle:Review:index', {'fundraiser_id': fundraiser.id})) }}
+
+{% if is_granted('ROLE_USER') -%}
+	<h2>Submit a new review:</h2>
+    {{ form_start(form) }}
+        <div class="form-group">
+            {{ form_label(form.title) }}
+            {{ form_errors(form.title) }}
+            {{ form_widget(form.title, { 'attr': {'class': 'form-control'} }) }}
+        </div>
+        <div class="form-group">
+            {{ form_label(form.rating)}}
+            {{ form_errors(form.rating) }}
+            <div class="stars">{{ form_widget(form.rating) }}</div>
+        </div>
+        <div class="form-group">
+            {{ form_label(form.review)}}
+            {{ form_errors(form.review) }}
+            {{ form_widget(form.review, { 'attr': {'class': 'form-control'} }) }}
+        </div>
+        <input class="btn btn-default" type="submit" value="Create" />
+    {{ form_end(form) }}
+
+ 
+
+{% else %}
+	<h3>Log In To Leave A Review!</h3>
+	<p>Click <a href="{{ path('fos_user_security_login') }}">here</a> to log in or <a href="{{ path('fos_user_registration_register') }}">here</a> to register</p>
+{% endif %}
+
+{% endblock %}

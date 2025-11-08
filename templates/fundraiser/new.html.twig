@@ -1,0 +1,33 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1>Fundraiser creation</h1>
+
+    {{ form_start(form) }}
+<div class="form-group">
+            {{ form_label(form.name)}}
+            {% if form_errors(form.name) is not empty %}
+            <div class="alert alert-danger">{{ form_errors(form.name) }}</div>
+            {% endif %}
+            {{ form_widget(form.name, { 'attr': {'class': 'form-control'} }) }}
+
+</div>
+<div class="form-group">
+            {{ form_label(form.description)}}
+            {% if form_errors(form.description) is not empty %}
+            <div class="alert alert-danger">{{ form_errors(form.description) }}</div>
+            {% endif %}
+            {{ form_widget(form.description, { 'attr': {'class': 'form-control'} }) }}
+</div>
+<div class="form-group">
+            {{ form_label(form.thumbnail)}}
+            {% if form_errors(form.thumbnail) is not empty %}
+            <div class="alert alert-danger">{{ form_errors(form.thumbnail) }}</div>
+            {% endif %}
+            {{ form_widget(form.thumbnail, { 'attr': {'class': 'form-control'} }) }}
+            <p class="alert alert-warning">Note there's a bundle for uploading/cropping images that I'd like to implement soon. For now, copy/paste the url of a picture... or just leave this empty. It's optional.</p>
+</div>
+        <input type="submit" class="btn btn-primary btn-lg" value="Create" />
+    {{ form_end(form) }}
+
+{% endblock %}

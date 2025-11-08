@@ -1,0 +1,7 @@
+<nav role="navigation" class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+	<ul class="nav navbar-nav">
+		{% for menuItem in menuItems %}
+		    <li><a href="{{ menuItem.link }}">{{ menuItem.name }}</a></li>
+		{% endfor %}
+	</ul>
+</nav>
