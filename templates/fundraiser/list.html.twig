@@ -3,14 +3,21 @@
     {% for fundraiser in fundraisers %}
         <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12 clearfix">
             <div class="thumbnail clearfix">
-                {% if fundraiser.thumbnail is defined %}
+                {% if fundraiser.thumbnail is defined and fundraiser.thumbnail %}
                 <img src="{{ fundraiser.thumbnail }}" alt="Thumbnail for {{ fundraiser.name }}">
                 {% endif %}
                 <div class="caption">
                     <h3>{{ fundraiser.name }}</h3>
                     <p class="stars">
+                        {% set avgRating = 0 %}
+                        {% for review in fundraiser.reviews %}
+                            {% set avgRating = avgRating + review.rating %}
+                        {% endfor %}
+                        {% if fundraiser.reviews|length > 0 %}
+                            {% set avgRating = (avgRating / fundraiser.reviews|length)|round %}
+                        {% endif %}
                         {% for i in 0..4 %}
-                            {% if i < fundraiser.avg_rating %}
+                            {% if i < avgRating %}
                                 <span class="glyphicon glyphicon-star"></span>
                             {% else %}
                                 <span class="glyphicon glyphicon-star-empty"></span>

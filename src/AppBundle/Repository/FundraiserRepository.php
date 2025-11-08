@@ -24,13 +24,12 @@ class FundraiserRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
 
         $queryString = '
-            SELECT Fundraiser.id, Fundraiser.name, Fundraiser.description, Fundraiser.thumbnail, Fundraiser.createdDate,AVG(Review.rating) as avg_rating
-            FROM AppBundle:Fundraiser Fundraiser
-            LEFT JOIN AppBundle:Review Review
-            WHERE Fundraiser.id = Review.fundraiser
-            GROUP BY Fundraiser.id ORDER BY';
+            SELECT f, AVG(r.rating) as HIDDEN avg_rating
+            FROM AppBundle:Fundraiser f
+            LEFT JOIN AppBundle:Review r WITH f.id = r.fundraiser
+            GROUP BY f.id ORDER BY';
 
-        $queryString .= ($orderBy === "avg_rating") ? " avg_rating DESC" : " Fundraiser.name ASC";
+        $queryString .= ($orderBy === "avg_rating") ? " avg_rating DESC" : " f.name ASC";
 
         $query = $em->createQuery($queryString);
         $result = $query->getResult();
