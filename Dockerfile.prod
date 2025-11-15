@@ -1,0 +1,54 @@
+# Dockerfile.prod - Production optimized Dockerfile
+FROM php:8.1-apache
+
+# Install system dependencies and SSL tools
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    libzip-dev \
+    zip \
+    unzip \
+    default-mysql-client \
+    wget \
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Set working directory
+WORKDIR /var/www/html
+
+# Copy application files
+COPY . .
+
+# Install PHP dependencies
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+# Set proper permissions
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html/public \
+    && chmod -R 777 /var/www/html/var
+
+# Configure Apache for HTTP only (ALB will handle HTTPS)
+RUN a2enmod rewrite headers
+COPY docker/apache-http.conf /etc/apache2/sites-available/000-default.conf
+
+# Configure Apache to trust ALB forwarded headers
+RUN a2enmod remoteip
+COPY docker/apache-remoteip.conf /etc/apache2/conf-available/remoteip.conf
+RUN a2enconf remoteip
+
+# Health check endpoint for ALB
+RUN echo '<?php http_response_code(200); echo "OK"; ?>' > /var/www/html/public/health
+
+# Create startup script with database connectivity check
+COPY docker/start.sh /usr/local/bin/start.sh
+RUN chmod +x /usr/local/bin/start.sh
+
+EXPOSE 80
+
+# Use custom startup script
+CMD ["/usr/local/bin/start.sh"]

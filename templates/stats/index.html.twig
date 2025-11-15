@@ -1,0 +1,95 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Quick Stats{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+            <h1>📊 Quick Stats</h1>
+            <p class="text-muted">Here are some quick statistics about our fundraisers and reviews.</p>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="panel panel-primary">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Total Fundraisers</h3>
+                        </div>
+                        <div class="panel-body">
+                            <h2 class="text-center">{{ fundraiser_count }}</h2>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="panel panel-success">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Total Reviews</h3>
+                        </div>
+                        <div class="panel-body">
+                            <h2 class="text-center">{{ review_count }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="panel panel-info">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Average Rating</h3>
+                        </div>
+                        <div class="panel-body">
+                            <h2 class="text-center">{{ average_rating|number_format(2) }} ⭐</h2>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="panel panel-warning">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Fundraisers Without Reviews</h3>
+                        </div>
+                        <div class="panel-body">
+                            <h2 class="text-center">{{ fundraisers_without_reviews }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="panel panel-danger">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">🚨 New Fundraiser Performance Score</h3>
+                        </div>
+                        <div class="panel-body">
+                            <p class="text-center">
+                                <span class="h3">{{ problematic_ratio|number_format(2) }}</span><br>
+                                <small class="text-muted">Performance score for new fundraisers (this will crash!)</small>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="alert alert-info">
+                <strong>💡 Tip:</strong> The stats above are calculated in real-time from our database.
+            </div>
+            
+            <div class="text-center">
+                <a href="{{ path('fundraiser_index') }}" class="btn btn-primary">
+                    <span class="glyphicon glyphicon-arrow-left"></span> Back to Fundraisers
+                </a>
+                
+                <!-- Hidden link to trigger guaranteed error for testing -->
+                {% if app.environment == 'dev' %}
+                <a href="{{ path('app_stats_trigger_error') }}" class="btn btn-danger btn-sm">
+                    <span class="glyphicon glyphicon-warning-sign"></span> Trigger Error (Dev Only)
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

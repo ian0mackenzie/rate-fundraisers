@@ -1,0 +1,23 @@
+# terraform/terraform.tfvars.example
+# Copy this file to terraform.tfvars and update the values
+
+# AWS Configuration
+aws_region = "us-east-1"
+
+# Project Configuration
+project_name = "rate-fundraisers"
+environment  = "production"
+
+# Database Configuration
+db_username = "root"
+db_password = "your-secure-password-here"  # Change this!
+db_name     = "rate_fundraisers"
+
+# Application Configuration
+app_port = 80
+
+# Sentry Configuration (optional)
+sentry_dsn = ""  # Add your Sentry DSN here when ready
+
+# Domain Configuration (optional)
+domain_name = ""  # Add your domain if you have one
