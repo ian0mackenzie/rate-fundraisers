@@ -79,7 +79,7 @@ jobs:
           STACKTRACE=$(jq -r '.data.event.exception.values[0].stacktrace.frames[]? | "\(.filename):\(.lineno)  \(.function // "unknown")"' "$EVENT_FILE" | tail -n 15)
 
           {
-            echo "ISSUE_BODY<<'EOF'"
+            echo "ISSUE_BODY<<EOF"
             echo "Sentry reported an error in environment: \`${{ steps.extract.outputs.ENVIRONMENT }}\`"
             echo
             echo "**Error type:** \`${{ steps.extract.outputs.ERROR_TYPE }}\`"
@@ -102,7 +102,7 @@ jobs:
             echo
             echo "_This issue was created automatically from a Sentry alert. Please investigate and fix._"
             echo "EOF"
-          } >> $GITHUB_OUTPUT
+          } >> "$GITHUB_OUTPUT"
 
       - name: Get repository & Copilot agent IDs
         id: ids
