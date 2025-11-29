@@ -34,18 +34,22 @@ jobs:
         run: |
           if [ -n "${{ github.event.client_payload.sentry }}" ]; then
             echo "Writing Sentry payload from repository_dispatch"
-            # Write the JSON payload directly
-            echo '${{ toJson(github.event.client_payload.sentry) }}' > sentry-event.json
-          else
-            echo "No client_payload.sentry found, using workflow_dispatch input"
-            echo '${{ github.event.inputs.sentry_payload }}' > sentry-event.json
+            # Write the JSON payload safely via heredoc (handles quotes inside JSON)
+            cat << 'EOF' > sentry-event.json
+            ${{ toJson(github.event.client_payload.sentry) }}
+            EOF
+                      else
+                        echo "No client_payload.sentry found, using workflow_dispatch input"
+                        cat << 'EOF' > sentry-event.json
+            ${{ github.event.inputs.sentry_payload }}
+            EOF
           fi
 
           echo "Sentry payload saved to sentry-event.json"
 
-          # Quick debug view: prefer .data.event, fall back to .data.issue
+          # Quick debug view: prefer .event, fall back to .issue
           jq '
-            (.data.event // .data.issue)
+            (.event // .issue)
             | {
                 title,
                 level,
@@ -53,6 +57,7 @@ jobs:
                 message: (.message // .metadata.value // .metadata.type)
               }
           ' sentry-event.json || cat sentry-event.json
+
 
       - name: Extract error details
         id: extract
