@@ -17,7 +17,6 @@ class StatsController extends AbstractController
         // Tag this request for Sentry tracking
         \Sentry\configureScope(function (\Sentry\State\Scope $scope): void {
             $scope->setTag('feature', 'stats-page');
-            $scope->setTag('error-type', 'division-by-zero-error-triggered');
         });
         
         try {
@@ -81,16 +80,14 @@ class StatsController extends AbstractController
     {
         // Tag this request for Sentry tracking
         \Sentry\configureScope(function (\Sentry\State\Scope $scope): void {
-            $scope->setTag('feature', 'error-trigger');
-            $scope->setTag('error-type', 'division-by-zero-error-triggered');
+            $scope->setTag('feature', 'stats-trigger');
         });
         
-        // This endpoint can be used to test Sentry error reporting
-        // by using the 'force_error' query parameter
+        // This endpoint provides basic stats safely
         
         $fundraiserCount = $entityManager->getRepository(Fundraiser::class)->count([]);
         
-        // Safely handle division - only trigger error if explicitly requested for testing
+        // Safely handle division
         $reviewCount = $entityManager->getRepository(Review::class)->count([]);
         $totalRatings = 100; // Some fake total for demonstration
         
