@@ -35,52 +35,213 @@ jobs:
           if [ -n "${{ github.event.client_payload.sentry }}" ]; then
             echo "Writing Sentry payload from repository_dispatch"
             cat << 'EOF' > sentry-event.json
-          ${{ toJson(github.event.client_payload.sentry) }}
-          EOF
+            ${{ toJson(github.event.client_payload.sentry) }}
+            EOF
           else
             echo "No client_payload.sentry found, using workflow_dispatch input"
             cat << 'EOF' > sentry-event.json
-          ${{ github.event.inputs.sentry_payload }}
-          EOF
+            ${{ github.event.inputs.sentry_payload }}
+            EOF
           fi
 
           echo "Sentry payload saved to sentry-event.json"
-          jq '.data.event | {title, level, platform, message: (.message // .logentry.formatted)}' sentry-event.json || cat sentry-event.json
+
+          # Quick debug view: prefer .data.event, fall back to .data.issue
+          jq '
+            (.data.event // .data.issue)
+            | {
+                title,
+                level,
+                platform,
+                message: (.message // .metadata.value // .metadata.type)
+              }
+          ' sentry-event.json || cat sentry-event.json
 
       - name: Extract error details
         id: extract
         run: |
           EVENT_FILE="sentry-event.json"
 
-          ERROR_TYPE=$(jq -r '.data.event.exception.values[0].type // "UnknownError"' "$EVENT_FILE")
-          ERROR_VALUE=$(jq -r '.data.event.exception.values[0].value // "No message"' "$EVENT_FILE")
-          ERROR_TITLE=$(jq -r '.data.event.title // .data.event.message // .data.event.logentry.formatted // "Sentry error"' "$EVENT_FILE")
-          ISSUE_URL=$(jq -r '.data.event.web_url // .data.event.issue_url // "n/a"' "$EVENT_FILE")
-          ENVIRONMENT=$(jq -r '.data.event.environment // "unknown"' "$EVENT_FILE")
+          ERROR_TYPE=$(
+            jq -r '
+              .data.event.exception.values[0].type
+              // .data.event.type
+              // .data.issue.metadata.type
+              // .data.issue.issueType
+              // .data.issue.type
+              // "UnknownError"
+            ' "$EVENT_FILE"
+          )
+
+          ERROR_VALUE=$(
+            jq -r '
+              .data.event.exception.values[0].value
+              // .data.event.logentry.formatted
+              // .data.event.message
+              // .data.issue.metadata.value
+              // "No message"
+            ' "$EVENT_FILE"
+          )
+
+          ERROR_TITLE=$(
+            jq -r '
+              .data.event.title
+              // .data.event.message
+              // .data.event.logentry.formatted
+              // .data.issue.title
+              // "Sentry error"
+            ' "$EVENT_FILE"
+          )
+
+          ISSUE_URL=$(
+            jq -r '
+              .data.event.web_url
+              // .data.event.issue_url
+              // .data.issue.web_url
+              // .data.issue.permalink
+              // "n/a"
+            ' "$EVENT_FILE"
+          )
+
+          ENVIRONMENT=$(
+            jq -r '
+              .data.event.environment
+              // "unknown"
+            ' "$EVENT_FILE"
+          )
+
+          LEVEL=$(
+            jq -r '
+              .data.event.level
+              // .data.issue.level
+              // "error"
+            ' "$EVENT_FILE"
+          )
+
+          CULPRIT=$(
+            jq -r '
+              .data.event.culprit
+              // .data.issue.culprit
+              // ""
+            ' "$EVENT_FILE"
+          )
+
+          LOGGER=$(
+            jq -r '
+              .data.event.logger
+              // .data.issue.logger
+              // ""
+            ' "$EVENT_FILE"
+          )
+
+          REQUEST_URL=$(
+            jq -r '
+              .data.event.request.url
+              // ""
+            ' "$EVENT_FILE"
+          )
+
+          USER_ID=$(
+            jq -r '
+              .data.event.user.id
+              // ""
+            ' "$EVENT_FILE"
+          )
+
+          FILENAME=$(
+            jq -r '
+              .data.event.exception.values[0].stacktrace.frames[-1].filename
+              // .data.issue.metadata.filename
+              // ""
+            ' "$EVENT_FILE"
+          )
+
+          FUNCTION_NAME=$(
+            jq -r '
+              .data.event.exception.values[0].stacktrace.frames[-1].function
+              // .data.issue.metadata.function
+              // ""
+            ' "$EVENT_FILE"
+          )
 
           echo "ERROR_TYPE=$ERROR_TYPE" >> $GITHUB_OUTPUT
           echo "ERROR_VALUE=$ERROR_VALUE" >> $GITHUB_OUTPUT
           echo "ERROR_TITLE=$ERROR_TITLE" >> $GITHUB_OUTPUT
           echo "ISSUE_URL=$ISSUE_URL" >> $GITHUB_OUTPUT
           echo "ENVIRONMENT=$ENVIRONMENT" >> $GITHUB_OUTPUT
+          echo "LEVEL=$LEVEL" >> $GITHUB_OUTPUT
+          echo "CULPRIT=$CULPRIT" >> $GITHUB_OUTPUT
+          echo "LOGGER=$LOGGER" >> $GITHUB_OUTPUT
+          echo "REQUEST_URL=$REQUEST_URL" >> $GITHUB_OUTPUT
+          echo "USER_ID=$USER_ID" >> $GITHUB_OUTPUT
+          echo "FILENAME=$FILENAME" >> $GITHUB_OUTPUT
+          echo "FUNCTION_NAME=$FUNCTION_NAME" >> $GITHUB_OUTPUT
 
           echo "Extracted:"
+          echo "  Title:       $ERROR_TITLE"
           echo "  Type:        $ERROR_TYPE"
           echo "  Message:     $ERROR_VALUE"
-          echo "  Title:       $ERROR_TITLE"
+          echo "  Level:       $LEVEL"
+          echo "  Env:         $ENVIRONMENT"
+          echo "  Culprit:     $CULPRIT"
+          echo "  Logger:      $LOGGER"
+          echo "  File:        $FILENAME"
+          echo "  Function:    $FUNCTION_NAME"
+          echo "  Request URL: $REQUEST_URL"
+          echo "  User ID:     $USER_ID"
           echo "  Sentry link: $ISSUE_URL"
-          echo "  Environment: $ENVIRONMENT"
 
       - name: Build issue body from Sentry event
         id: body
         run: |
           EVENT_FILE="sentry-event.json"
-          SUMMARY=$(jq -r '.data.event.logentry.formatted // .data.event.message // "No log message"' "$EVENT_FILE")
-          STACKTRACE=$(jq -r '.data.event.exception.values[0].stacktrace.frames[]? | "\(.filename):\(.lineno)  \(.function // "unknown")"' "$EVENT_FILE" | tail -n 15)
+
+          SUMMARY=$(
+            jq -r '
+              .data.event.logentry.formatted
+              // .data.event.message
+              // .data.event.title
+              // .data.issue.title
+              // "No log message"
+            ' "$EVENT_FILE"
+          )
+
+          STACKTRACE=$(
+            jq -r '
+              .data.event.exception.values[0].stacktrace.frames[]?
+              | "\(.filename):\(.lineno)  \(.function // "unknown")"
+            ' "$EVENT_FILE" | tail -n 15
+          )
+
+          EVENT_SNIPPET=$(
+            jq -r '
+              if .data.event then
+                .data.event
+              else
+                .data.issue
+              end
+              | {
+                  id: (.event_id // .id),
+                  type: .type,
+                  title: .title,
+                  level: .level,
+                  platform: .platform,
+                  logger: .logger,
+                  culprit: .culprit,
+                  environment: .environment,
+                  metadata: .metadata,
+                  tags: .tags,
+                  request: .request,
+                  user: .user
+                }
+            ' "$EVENT_FILE"
+          )
 
           {
             echo "ISSUE_BODY<<EOF"
             echo "Sentry reported an error in environment: \`${{ steps.extract.outputs.ENVIRONMENT }}\`"
+            echo
+            echo "**Level:** \`${{ steps.extract.outputs.LEVEL }}\`"
             echo
             echo "**Error type:** \`${{ steps.extract.outputs.ERROR_TYPE }}\`"
             echo
@@ -92,12 +253,48 @@ jobs:
             echo
             echo "    $SUMMARY"
             echo
+
+            if [ -n "${{ steps.extract.outputs.CULPRIT }}" ]; then
+              echo "**Culprit:** \`${{ steps.extract.outputs.CULPRIT }}\`"
+              echo
+            fi
+
+            if [ -n "${{ steps.extract.outputs.FILENAME }}" ] || [ -n "${{ steps.extract.outputs.FUNCTION_NAME }}" ]; then
+              echo "**Location:** \`${{ steps.extract.outputs.FILENAME }}::${{ steps.extract.outputs.FUNCTION_NAME }}\`"
+              echo
+            fi
+
+            if [ -n "${{ steps.extract.outputs.LOGGER }}" ]; then
+              echo "**Logger:** \`${{ steps.extract.outputs.LOGGER }}\`"
+              echo
+            fi
+
+            if [ -n "${{ steps.extract.outputs.REQUEST_URL }}" ]; then
+              echo "**Request URL:** \`${{ steps.extract.outputs.REQUEST_URL }}\`"
+              echo
+            fi
+
+            if [ -n "${{ steps.extract.outputs.USER_ID }}" ]; then
+              echo "**User ID:** \`${{ steps.extract.outputs.USER_ID }}\`"
+              echo
+            fi
+
             echo "**Sentry link:** ${{ steps.extract.outputs.ISSUE_URL }}"
             echo
             echo "Recent stacktrace frames:"
             echo
             echo '```text'
-            echo "$STACKTRACE"
+            if [ -n "$STACKTRACE" ]; then
+              echo "$STACKTRACE"
+            else
+              echo "(No stacktrace available in this event.)"
+            fi
+            echo '```'
+            echo
+            echo "Event snapshot (for Copilot / debugging):"
+            echo
+            echo '```json'
+            echo "$EVENT_SNIPPET"
             echo '```'
             echo
             echo "_This issue was created automatically from a Sentry alert. Please investigate and fix._"
@@ -112,7 +309,6 @@ jobs:
 
           echo "Repo: $owner / $repo"
 
-          # 1) Get repository node ID + suggested actors (including Copilot agent if enabled)
           repo_res=$(gh api graphql -f query='
             query($owner:String!, $name:String!) {
               repository(owner: $owner, name: $name) {
@@ -138,7 +334,6 @@ jobs:
           repo_id=$(echo "$repo_res" | jq -r '.data.repository.id')
           echo "REPO_ID=$repo_id" >> $GITHUB_OUTPUT
 
-          # 2) Find Copilot coding agent in suggestedActors
           copilot_id=$(echo "$repo_res" \
             | jq -r '.data.repository.suggestedActors.nodes[]? 
               | select(.login=="copilot-swe-agent" or .login=="copilot") 
@@ -151,7 +346,6 @@ jobs:
             echo "Found Copilot agent id: $copilot_id"
             echo "COPILOT_ID=$copilot_id" >> $GITHUB_OUTPUT
           fi
-
 
       - name: Create GitHub issue for Copilot
         id: create_issue
@@ -218,5 +412,4 @@ jobs:
         if: steps.ids.outputs.COPILOT_ID == '' 
         run: |
           echo "Copilot coding agent is not enabled or not available for this repository."
-          echo "The issue was still created: ${{ steps.create_issue.outputs.ISSUE_URL }}"
-          echo "You can assign it manually to Copilot via the UI if desired."
+          echo "The issue was still created (if creation succeeded). Assign it manually in the UI if needed."
