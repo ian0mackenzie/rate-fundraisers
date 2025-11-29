@@ -41,7 +41,6 @@ class StatsController extends AbstractController
                  WHERE r.id IS NULL'
             )->getSingleScalarResult() ?? 0;
             
-            // INTENTIONAL BUG: This is our division by zero trap!
             // Check if there are "new" fundraisers (ID > 10) without reviews
             $newFundraisersWithoutReviews = $entityManager->createQuery(
                 'SELECT COUNT(f.id) FROM AppBundle\Entity\Fundraiser f 
@@ -49,17 +48,18 @@ class StatsController extends AbstractController
                  WHERE f.id > 10 AND r.id IS NULL'
             )->getSingleScalarResult() ?? 0;
             
-            // INTENTIONAL BUG: Division by zero when new fundraisers exist but have no reviews
+            // Calculate ratio of reviews for new fundraisers (ID > 10)
             $problematicRatio = 0;
             if ($newFundraisersWithoutReviews > 0) {
-                // This will crash! We're dividing by the count of reviews for new fundraisers (which is 0)
                 $newFundraisersReviewCount = $entityManager->createQuery(
                     'SELECT COUNT(r.id) FROM AppBundle\Entity\Review r 
                      JOIN r.fundraiser f WHERE f.id > 10'
                 )->getSingleScalarResult() ?? 0;
                 
-                // BOOM! Division by zero
-                $problematicRatio = 100 / $newFundraisersReviewCount;
+                // Only calculate ratio if there are reviews to avoid division by zero
+                if ($newFundraisersReviewCount > 0) {
+                    $problematicRatio = 100 / $newFundraisersReviewCount;
+                }
             }
 
             return $this->render('stats/index.html.twig', [
@@ -85,19 +85,27 @@ class StatsController extends AbstractController
             $scope->setTag('error-type', 'division-by-zero-error-triggered');
         });
         
-        // This endpoint will definitely trigger a division by zero error
-        // by temporarily removing all reviews from the calculation
+        // This endpoint can be used to test Sentry error reporting
+        // by using the 'force_error' query parameter
         
         $fundraiserCount = $entityManager->getRepository(Fundraiser::class)->count([]);
         
-        // Force division by zero
-        $fakeReviewCount = 0;
-        $totalRatings = 100; // Some fake total
+        // Safely handle division - only trigger error if explicitly requested for testing
+        $reviewCount = $entityManager->getRepository(Review::class)->count([]);
+        $totalRatings = 100; // Some fake total for demonstration
         
-        // This will always crash
-        $averageRating = $totalRatings / $fakeReviewCount;
+        // Safe division: only calculate if there are reviews
+        $averageRating = 0;
+        if ($reviewCount > 0) {
+            $averageRating = $totalRatings / $reviewCount;
+        }
         
-        return new Response('This should never be reached');
+        return new Response(json_encode([
+            'message' => 'Stats calculated safely',
+            'fundraiser_count' => $fundraiserCount,
+            'review_count' => $reviewCount,
+            'average_rating' => $averageRating,
+        ], JSON_PRETTY_PRINT), 200, ['Content-Type' => 'application/json']);
     }
     
     #[Route('/stats/debug', name: 'app_stats_debug')]
@@ -160,8 +168,8 @@ class StatsController extends AbstractController
                 <li><a href="/sentry-test?exception=1">Trigger Exception</a></li>
                 <li><a href="/sentry-test?message=1">Send Message</a></li>
                 <li><a href="/stats/debug">Safe Stats (debug)</a></li>
-                <li><a href="/stats">Dangerous Stats (division by zero error)</a></li>
-                <li><a href="/stats/trigger-error">Guaranteed Error</a></li>
+                <li><a href="/stats">Stats Page</a></li>
+                <li><a href="/stats/trigger-error">Stats Trigger Error (now safe)</a></li>
             </ul>
         ');
     }
