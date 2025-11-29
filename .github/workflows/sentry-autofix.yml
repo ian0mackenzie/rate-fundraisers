@@ -112,6 +112,7 @@ jobs:
 
           echo "Repo: $owner / $repo"
 
+          # 1) Get repository node ID + suggested actors (including Copilot agent if enabled)
           repo_res=$(gh api graphql -f query='
             query($owner:String!, $name:String!) {
               repository(owner: $owner, name: $name) {
@@ -119,8 +120,13 @@ jobs:
                 suggestedActors(capabilities: [CAN_BE_ASSIGNED], first: 100) {
                   nodes {
                     login
-                    id
                     __typename
+                    ... on Bot {
+                      id
+                    }
+                    ... on User {
+                      id
+                    }
                   }
                 }
               }
@@ -132,7 +138,11 @@ jobs:
           repo_id=$(echo "$repo_res" | jq -r '.data.repository.id')
           echo "REPO_ID=$repo_id" >> $GITHUB_OUTPUT
 
-          copilot_id=$(echo "$repo_res" | jq -r '.data.repository.suggestedActors.nodes[]? | select(.login=="copilot-swe-agent" or .login=="copilot") | .id')
+          # 2) Find Copilot coding agent in suggestedActors
+          copilot_id=$(echo "$repo_res" \
+            | jq -r '.data.repository.suggestedActors.nodes[]? 
+              | select(.login=="copilot-swe-agent" or .login=="copilot") 
+              | .id')
 
           if [ -z "$copilot_id" ] || [ "$copilot_id" = "null" ]; then
             echo "Copilot coding agent is not enabled or not suggested for this repo."
@@ -141,6 +151,7 @@ jobs:
             echo "Found Copilot agent id: $copilot_id"
             echo "COPILOT_ID=$copilot_id" >> $GITHUB_OUTPUT
           fi
+
 
       - name: Create GitHub issue for Copilot
         id: create_issue
