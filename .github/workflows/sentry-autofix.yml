@@ -34,14 +34,11 @@ jobs:
         run: |
           if [ -n "${{ github.event.client_payload.sentry }}" ]; then
             echo "Writing Sentry payload from repository_dispatch"
-            cat << 'EOF' > sentry-event.json
-            ${{ toJson(github.event.client_payload.sentry) }}
-            EOF
+            # Write the JSON payload directly
+            echo '${{ toJson(github.event.client_payload.sentry) }}' > sentry-event.json
           else
             echo "No client_payload.sentry found, using workflow_dispatch input"
-            cat << 'EOF' > sentry-event.json
-            ${{ github.event.inputs.sentry_payload }}
-            EOF
+            echo '${{ github.event.inputs.sentry_payload }}' > sentry-event.json
           fi
 
           echo "Sentry payload saved to sentry-event.json"
@@ -382,7 +379,7 @@ jobs:
           echo "ISSUE_NUMBER=$issue_number" >> $GITHUB_OUTPUT
           echo "ISSUE_URL=$issue_url" >> $GITHUB_OUTPUT
 
-          echo "Created issue $issue_number: $issue_url"
+          echo "Created issue #$issue_number: $issue_url"
 
       - name: Assign issue to Copilot coding agent
         if: steps.ids.outputs.COPILOT_ID != '' && steps.create_issue.outputs.ISSUE_ID != ''
