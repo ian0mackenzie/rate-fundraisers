@@ -66,102 +66,102 @@ jobs:
 
           ERROR_TYPE=$(
             jq -r '
-              .data.event.exception.values[0].type
-              // .data.event.type
-              // .data.issue.metadata.type
-              // .data.issue.issueType
-              // .data.issue.type
+              .event.exception.values[0].type
+              // .event.type
+              // .issue.metadata.type
+              // .issue.issueType
+              // .issue.type
               // "UnknownError"
             ' "$EVENT_FILE"
           )
 
           ERROR_VALUE=$(
             jq -r '
-              .data.event.exception.values[0].value
-              // .data.event.logentry.formatted
-              // .data.event.message
-              // .data.issue.metadata.value
+              .event.exception.values[0].value
+              // .event.logentry.formatted
+              // .event.message
+              // .issue.metadata.value
               // "No message"
             ' "$EVENT_FILE"
           )
 
           ERROR_TITLE=$(
             jq -r '
-              .data.event.title
-              // .data.event.message
-              // .data.event.logentry.formatted
-              // .data.issue.title
+              .event.title
+              // .event.message
+              // .event.logentry.formatted
+              // .issue.title
               // "Sentry error"
             ' "$EVENT_FILE"
           )
 
           ISSUE_URL=$(
             jq -r '
-              .data.event.web_url
-              // .data.event.issue_url
-              // .data.issue.web_url
-              // .data.issue.permalink
+              .event.web_url
+              // .event.issue_url
+              // .issue.web_url
+              // .issue.permalink
               // "n/a"
             ' "$EVENT_FILE"
           )
 
           ENVIRONMENT=$(
             jq -r '
-              .data.event.environment
+              .event.environment
               // "unknown"
             ' "$EVENT_FILE"
           )
 
           LEVEL=$(
             jq -r '
-              .data.event.level
-              // .data.issue.level
+              .event.level
+              // .issue.level
               // "error"
             ' "$EVENT_FILE"
           )
 
           CULPRIT=$(
             jq -r '
-              .data.event.culprit
-              // .data.issue.culprit
+              .event.culprit
+              // .issue.culprit
               // ""
             ' "$EVENT_FILE"
           )
 
           LOGGER=$(
             jq -r '
-              .data.event.logger
-              // .data.issue.logger
+              .event.logger
+              // .issue.logger
               // ""
             ' "$EVENT_FILE"
           )
 
           REQUEST_URL=$(
             jq -r '
-              .data.event.request.url
+              .event.request.url
               // ""
             ' "$EVENT_FILE"
           )
 
           USER_ID=$(
             jq -r '
-              .data.event.user.id
+              .event.user.id
               // ""
             ' "$EVENT_FILE"
           )
 
           FILENAME=$(
             jq -r '
-              .data.event.exception.values[0].stacktrace.frames[-1].filename
-              // .data.issue.metadata.filename
+              .event.exception.values[0].stacktrace.frames[-1].filename
+              // .issue.metadata.filename
               // ""
             ' "$EVENT_FILE"
           )
 
           FUNCTION_NAME=$(
             jq -r '
-              .data.event.exception.values[0].stacktrace.frames[-1].function
-              // .data.issue.metadata.function
+              .event.exception.values[0].stacktrace.frames[-1].function
+              // .issue.metadata.function
               // ""
             ' "$EVENT_FILE"
           )
@@ -200,27 +200,27 @@ jobs:
 
           SUMMARY=$(
             jq -r '
-              .data.event.logentry.formatted
-              // .data.event.message
-              // .data.event.title
-              // .data.issue.title
+              .event.logentry.formatted
+              // .event.message
+              // .event.title
+              // .issue.title
               // "No log message"
             ' "$EVENT_FILE"
           )
 
           STACKTRACE=$(
             jq -r '
-              .data.event.exception.values[0].stacktrace.frames[]?
+              .event.exception.values[0].stacktrace.frames[]?
               | "\(.filename):\(.lineno)  \(.function // "unknown")"
             ' "$EVENT_FILE" | tail -n 15
           )
 
           EVENT_SNIPPET=$(
             jq -r '
-              if .data.event then
-                .data.event
+              if .event then
+                .event
               else
-                .data.issue
+                .issue
               end
               | {
                   id: (.event_id // .id),
