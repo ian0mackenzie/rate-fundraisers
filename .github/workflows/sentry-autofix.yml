@@ -35,13 +35,13 @@ jobs:
           if [ -n "${{ github.event.client_payload.sentry }}" ]; then
             echo "Writing Sentry payload from repository_dispatch"
             cat << 'EOF' > sentry-event.json
-${{ toJson(github.event.client_payload.sentry) }}
-EOF
+          ${{ toJson(github.event.client_payload.sentry) }}
+          EOF
           else
             echo "No client_payload.sentry found, using workflow_dispatch input"
             cat << 'EOF' > sentry-event.json
-${{ github.event.inputs.sentry_payload }}
-EOF
+          ${{ github.event.inputs.sentry_payload }}
+          EOF
           fi
 
           echo "Sentry payload saved to sentry-event.json"
