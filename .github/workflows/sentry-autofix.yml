@@ -31,18 +31,18 @@ jobs:
 
       - name: Get Sentry payload
         id: payload
+        env:
+          # These are evaluated by GitHub Actions *before* the shell runs.
+          SENTRY_FROM_DISPATCH: ${{ toJson(github.event.client_payload.sentry) }}
+          SENTRY_FROM_INPUT: ${{ github.event.inputs.sentry_payload }}
         run: |
-          if [ -n "${{ github.event.client_payload.sentry }}" ]; then
+          # Prefer repository_dispatch payload if present and not "null"
+          if [ -n "$SENTRY_FROM_DISPATCH" ] && [ "$SENTRY_FROM_DISPATCH" != "null" ]; then
             echo "Writing Sentry payload from repository_dispatch"
-            # Write the JSON payload safely via heredoc (handles quotes inside JSON)
-            cat << 'EOF' > sentry-event.json
-            ${{ toJson(github.event.client_payload.sentry) }}
-            EOF
-                      else
-                        echo "No client_payload.sentry found, using workflow_dispatch input"
-                        cat << 'EOF' > sentry-event.json
-            ${{ github.event.inputs.sentry_payload }}
-            EOF
+            printf '%s\n' "$SENTRY_FROM_DISPATCH" > sentry-event.json
+          else
+            echo "No client_payload.sentry found, using workflow_dispatch input"
+            printf '%s\n' "$SENTRY_FROM_INPUT" > sentry-event.json
           fi
 
           echo "Sentry payload saved to sentry-event.json"
