@@ -1,19 +1,29 @@
-name: Sentry auto-fix
+name: Sentry auto-fix (Copilot coding agent)
 
 on:
+  # Triggered by Lambda via repository_dispatch
   repository_dispatch:
     types: [sentry_error]
 
+  # Optional: manual run for testing
   workflow_dispatch:
     inputs:
       sentry_payload:
-        description: "Raw Sentry payload (JSON, optional)"
+        description: "Raw Sentry payload (JSON)"
         required: false
         default: "{}"
+
+permissions:
+  contents: read
+  issues: write
 
 jobs:
   handle-sentry-error:
     runs-on: ubuntu-latest
+
+    env:
+      # Use a user PAT with Copilot enabled on this repo
+      GH_TOKEN: ${{ secrets.COPILOT_USER_TOKEN }}
 
     steps:
       - name: Checkout repo
@@ -23,18 +33,179 @@ jobs:
         id: payload
         run: |
           if [ -n "${{ github.event.client_payload.sentry }}" ]; then
-            echo "Writing Sentry payload to sentry-event.json"
+            echo "Writing Sentry payload from repository_dispatch"
             cat << 'EOF' > sentry-event.json
-          ${{ toJson(github.event.client_payload.sentry) }}
-          EOF
+${{ toJson(github.event.client_payload.sentry) }}
+EOF
           else
-            echo "No payload found — manual trigger mode"
-            echo '{}' > sentry-event.json
+            echo "No client_payload.sentry found, using workflow_dispatch input"
+            cat << 'EOF' > sentry-event.json
+${{ github.event.inputs.sentry_payload }}
+EOF
           fi
 
           echo "Sentry payload saved to sentry-event.json"
-          cat sentry-event.json || true
+          jq '.data.event | {title, level, platform, message: (.message // .logentry.formatted)}' sentry-event.json || cat sentry-event.json
 
-      - name: Placeholder — Analyze payload
+      - name: Extract error details
+        id: extract
         run: |
-          echo "Next step: parse sentry-event.json, detect error source, generate fix"
+          EVENT_FILE="sentry-event.json"
+
+          ERROR_TYPE=$(jq -r '.data.event.exception.values[0].type // "UnknownError"' "$EVENT_FILE")
+          ERROR_VALUE=$(jq -r '.data.event.exception.values[0].value // "No message"' "$EVENT_FILE")
+          ERROR_TITLE=$(jq -r '.data.event.title // .data.event.message // .data.event.logentry.formatted // "Sentry error"' "$EVENT_FILE")
+          ISSUE_URL=$(jq -r '.data.event.web_url // .data.event.issue_url // "n/a"' "$EVENT_FILE")
+          ENVIRONMENT=$(jq -r '.data.event.environment // "unknown"' "$EVENT_FILE")
+
+          echo "ERROR_TYPE=$ERROR_TYPE" >> $GITHUB_OUTPUT
+          echo "ERROR_VALUE=$ERROR_VALUE" >> $GITHUB_OUTPUT
+          echo "ERROR_TITLE=$ERROR_TITLE" >> $GITHUB_OUTPUT
+          echo "ISSUE_URL=$ISSUE_URL" >> $GITHUB_OUTPUT
+          echo "ENVIRONMENT=$ENVIRONMENT" >> $GITHUB_OUTPUT
+
+          echo "Extracted:"
+          echo "  Type:        $ERROR_TYPE"
+          echo "  Message:     $ERROR_VALUE"
+          echo "  Title:       $ERROR_TITLE"
+          echo "  Sentry link: $ISSUE_URL"
+          echo "  Environment: $ENVIRONMENT"
+
+      - name: Build issue body from Sentry event
+        id: body
+        run: |
+          EVENT_FILE="sentry-event.json"
+          SUMMARY=$(jq -r '.data.event.logentry.formatted // .data.event.message // "No log message"' "$EVENT_FILE")
+          STACKTRACE=$(jq -r '.data.event.exception.values[0].stacktrace.frames[]? | "\(.filename):\(.lineno)  \(.function // "unknown")"' "$EVENT_FILE" | tail -n 15)
+
+          {
+            echo "ISSUE_BODY<<'EOF'"
+            echo "Sentry reported an error in environment: \`${{ steps.extract.outputs.ENVIRONMENT }}\`"
+            echo
+            echo "**Error type:** \`${{ steps.extract.outputs.ERROR_TYPE }}\`"
+            echo
+            echo "**Message:**"
+            echo
+            echo "    ${{ steps.extract.outputs.ERROR_VALUE }}"
+            echo
+            echo "**Summary:**"
+            echo
+            echo "    $SUMMARY"
+            echo
+            echo "**Sentry link:** ${{ steps.extract.outputs.ISSUE_URL }}"
+            echo
+            echo "Recent stacktrace frames:"
+            echo
+            echo '```text'
+            echo "$STACKTRACE"
+            echo '```'
+            echo
+            echo "_This issue was created automatically from a Sentry alert. Please investigate and fix._"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
+      - name: Get repository & Copilot agent IDs
+        id: ids
+        run: |
+          owner="${GITHUB_REPOSITORY%/*}"
+          repo="${GITHUB_REPOSITORY#*/}"
+
+          echo "Repo: $owner / $repo"
+
+          repo_res=$(gh api graphql -f query='
+            query($owner:String!, $name:String!) {
+              repository(owner: $owner, name: $name) {
+                id
+                suggestedActors(capabilities: [CAN_BE_ASSIGNED], first: 100) {
+                  nodes {
+                    login
+                    id
+                    __typename
+                  }
+                }
+              }
+            }' -f owner="$owner" -f name="$repo")
+
+          echo "Raw suggestedActors:"
+          echo "$repo_res"
+
+          repo_id=$(echo "$repo_res" | jq -r '.data.repository.id')
+          echo "REPO_ID=$repo_id" >> $GITHUB_OUTPUT
+
+          copilot_id=$(echo "$repo_res" | jq -r '.data.repository.suggestedActors.nodes[]? | select(.login=="copilot-swe-agent" or .login=="copilot") | .id')
+
+          if [ -z "$copilot_id" ] || [ "$copilot_id" = "null" ]; then
+            echo "Copilot coding agent is not enabled or not suggested for this repo."
+            echo "COPILOT_ID=" >> $GITHUB_OUTPUT
+          else
+            echo "Found Copilot agent id: $copilot_id"
+            echo "COPILOT_ID=$copilot_id" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create GitHub issue for Copilot
+        id: create_issue
+        run: |
+          if [ -z "${{ steps.ids.outputs.REPO_ID }}" ]; then
+            echo "Missing repository ID; cannot create issue."
+            exit 1
+          fi
+
+          ISSUE_TITLE="Sentry: ${{ steps.extract.outputs.ERROR_TITLE }}"
+
+          create_res=$(gh api graphql -f query='
+            mutation($repoId:ID!, $title:String!, $body:String!) {
+              createIssue(input:{repositoryId:$repoId, title:$title, body:$body}) {
+                issue {
+                  id
+                  number
+                  url
+                }
+              }
+            }' \
+            -f repoId="${{ steps.ids.outputs.REPO_ID }}" \
+            -f title="$ISSUE_TITLE" \
+            -f body="${{ steps.body.outputs.ISSUE_BODY }}")
+
+          echo "Issue create response:"
+          echo "$create_res"
+
+          issue_id=$(echo "$create_res" | jq -r '.data.createIssue.issue.id')
+          issue_number=$(echo "$create_res" | jq -r '.data.createIssue.issue.number')
+          issue_url=$(echo "$create_res" | jq -r '.data.createIssue.issue.url')
+
+          echo "ISSUE_ID=$issue_id" >> $GITHUB_OUTPUT
+          echo "ISSUE_NUMBER=$issue_number" >> $GITHUB_OUTPUT
+          echo "ISSUE_URL=$issue_url" >> $GITHUB_OUTPUT
+
+          echo "Created issue $issue_number: $issue_url"
+
+      - name: Assign issue to Copilot coding agent
+        if: steps.ids.outputs.COPILOT_ID != '' && steps.create_issue.outputs.ISSUE_ID != ''
+        run: |
+          issue_id="${{ steps.create_issue.outputs.ISSUE_ID }}"
+          copilot_id="${{ steps.ids.outputs.COPILOT_ID }}"
+
+          echo "Assigning issue $issue_id to Copilot agent $copilot_id"
+
+          assign_res=$(gh api graphql -f query='
+            mutation($issueId:ID!, $actorId:ID!) {
+              replaceActorsForAssignable(input:{assignableId:$issueId, actorIds:[$actorId]}) {
+                assignable {
+                  __typename
+                }
+              }
+            }' \
+            -f issueId="$issue_id" \
+            -f actorId="$copilot_id")
+
+          echo "Assignment response:"
+          echo "$assign_res"
+
+          echo "Issue has been assigned to Copilot coding agent. It should now start working and eventually open a PR."
+
+      - name: Copilot not available
+        if: steps.ids.outputs.COPILOT_ID == '' 
+        run: |
+          echo "Copilot coding agent is not enabled or not available for this repository."
+          echo "The issue was still created: ${{ steps.create_issue.outputs.ISSUE_URL }}"
+          echo "You can assign it manually to Copilot via the UI if desired."
