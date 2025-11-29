@@ -123,6 +123,10 @@ resource "aws_ecs_task_definition" "app" {
         {
           name  = "APP_ENV"
           value = var.environment
+        },
+        {
+          name  = "APP_VERSION"
+          value = "1.0.0"
         }
       ]
 
