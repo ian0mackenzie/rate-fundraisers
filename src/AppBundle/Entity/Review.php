@@ -5,56 +5,33 @@ namespace AppBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
-/**
- * Review
- *
- * @ORM\Table(name="review")
- * @ORM\Entity(repositoryClass="AppBundle\Repository\ReviewRepository")
- */
+
+#[ORM\Table(name: "review")]
+#[ORM\Entity(repositoryClass: "AppBundle\Repository\ReviewRepository")]
 class Review
 {
-    /**
-     * @var int
-     *
-     * @ORM\Column(name="id", type="integer")
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="AUTO")
-     */
+    #[ORM\Column(name: "id", type: "integer")]
+    #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: "AUTO")]
     private $id;
 
-    /**
-     * @var int
-     *
-     * @ORM\Column(name="rating", type="smallint")
-     * @Assert\NotBlank()
-     */
+    #[ORM\Column(name: "rating", type: "smallint")]
+    #[Assert\NotBlank()]
     private $rating;
 
-    /**
-     * @var string
-     *
-     * @ORM\Column(name="title", type="string", length=255)
-     * @Assert\NotBlank()
-     */
+    #[ORM\Column(name: "title", type: "string", length: 255)]
+    #[Assert\NotBlank()]
     private $title;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="Author", inversedBy="reviews")
-     * @ORM\JoinColumn(name="author_id", referencedColumnName="id")
-     */
+    #[ORM\ManyToOne(targetEntity: "Author", inversedBy: "reviews")]
+    #[ORM\JoinColumn(name: "author_id", referencedColumnName: "id")]
     private $author;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="Fundraiser", inversedBy="reviews")
-     * @ORM\JoinColumn(name="fundraiser_id", referencedColumnName="id")
-     */
+    #[ORM\ManyToOne(targetEntity: "Fundraiser", inversedBy: "reviews")]
+    #[ORM\JoinColumn(name: "fundraiser_id", referencedColumnName: "id")]
     private $fundraiser;
 
-    /**
-     * @var string
-     *
-     * @ORM\Column(name="review", type="text", nullable=true)
-     */
+    #[ORM\Column(name: "review", type: "text", nullable: true)]
     private $review;
 
 
@@ -116,29 +93,7 @@ class Review
         return $this->title;
     }
 
-    /**
-     * Set authorId
-     *
-     * @param integer $authorId
-     *
-     * @return Review
-     */
-    public function setAuthorId($authorId)
-    {
-        $this->authorId = $authorId;
 
-        return $this;
-    }
-
-    /**
-     * Get authorId
-     *
-     * @return int
-     */
-    public function getAuthorId()
-    {
-        return $this->authorId;
-    }
 
     /**
      * Set review

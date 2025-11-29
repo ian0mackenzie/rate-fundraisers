@@ -36,23 +36,15 @@ class ReviewType extends AbstractType
 
     }
     
-    /**
-     * {@inheritdoc}
-     */
-    public function configureOptions(OptionsResolver $resolver)
+    public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults(array(
-            'data_class' => 'AppBundle\Entity\Review'
-        ));
+        $resolver->setDefaults([
+            'data_class' => Review::class
+        ]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getBlockPrefix()
+    public function getBlockPrefix(): string
     {
         return 'appbundle_review';
     }
-
-
 }

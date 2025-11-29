@@ -5,70 +5,74 @@ namespace AppBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
-use FOS\UserBundle\Model\User as BaseUser;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
+
 /**
  * Author
- *
- * @ORM\Table(name="author")
- * @ORM\Entity(repositoryClass="AppBundle\Repository\AuthorRepository")
- *@ORM\HasLifecycleCallbacks
-  */
-//* @UniqueEntity(fields={"email"}, message="Note: author already exists")
+ */
+#[ORM\Table(name: "author")]
+#[ORM\Entity(repositoryClass: "AppBundle\Repository\AuthorRepository")]
+#[ORM\HasLifecycleCallbacks]
+#[UniqueEntity(fields: ["email"], message: "Note: email already exists")]
+#[UniqueEntity(fields: ["username"], message: "Note: username already exists")]
+class Author implements UserInterface, PasswordAuthenticatedUserInterface
+{
+    #[ORM\Id]
+    #[ORM\Column(type: "integer")]
+    #[ORM\GeneratedValue(strategy: "AUTO")]
+    private ?int $id = null;
 
-class Author extends BaseUser {
+    #[ORM\Column(type: "string", length: 180, unique: true)]
+    #[Assert\NotBlank]
+    #[Assert\Email]
+    private ?string $email = null;
 
-    /**
-     * @ORM\Id
-     * @ORM\Column(type="integer")
-     * @ORM\GeneratedValue(strategy="AUTO")
-     */
-    protected $id;
+    #[ORM\Column(type: "string", length: 180, unique: true)]
+    #[Assert\NotBlank]
+    private ?string $username = null;
+
+    #[ORM\Column(type: "json")]
+    private array $roles = [];
+
+    #[ORM\Column(type: "string")]
+    private ?string $password = null;
 
     /**
      * @var string
-     * @Assert\NotBlank()
-     *
-     * @ORM\Column(name="first_name", type="string", length=255)
      */
+    #[ORM\Column(name: "first_name", type: "string", length: 255)]
+    #[Assert\NotBlank]
     private $firstName;
 
     /**
      * @var string
-     * @Assert\NotBlank()
-     *
-     * @ORM\Column(name="last_name", type="string", length=255)
      */
+    #[ORM\Column(name: "last_name", type: "string", length: 255)]
+    #[Assert\NotBlank]
     private $lastName;
 
     /**
      * @var \DateTime
-     *
-     * @ORM\Column(name="created_date", type="datetime")
      */
+    #[ORM\Column(name: "created_date", type: "datetime")]
     private $createdDate;
 
-    /**
-     * @ORM\OneToMany(targetEntity="Review", mappedBy="author")
-     */
+    #[ORM\OneToMany(targetEntity: "Review", mappedBy: "author")]
     private $reviews;
 
-    /**
-     * @ORM\OneToMany(targetEntity="Fundraiser", mappedBy="author")
-     */
+    #[ORM\OneToMany(targetEntity: "Fundraiser", mappedBy: "author")]
     private $fundraisers;
 
     public function __construct()
     {
         $this->reviews = new ArrayCollection();
         $this->fundraisers = new ArrayCollection();
+        $this->roles = ['ROLE_USER'];
     }
 
-     /**
-     * @ORM\PrePersist()
-     * 
-     */
-
+    #[ORM\PrePersist]
     public function prePersist()
     {
         $this->createdDate = new \DateTime;
@@ -79,33 +83,82 @@ class Author extends BaseUser {
      *
      * @return int
      */
-    public function getId()
+    public function getId(): ?int
     {
         return $this->id;
     }
 
-    /**
-     * Set email
-     *
-     * @param string $email
-     *
-     * @return Author
-     */
-    public function setEmail($email)
+    public function getEmail(): ?string
+    {
+        return $this->email;
+    }
+
+    public function setEmail(string $email): self
     {
         $this->email = $email;
+        return $this;
+    }
 
+    public function getUsername(): ?string
+    {
+        return $this->username;
+    }
+
+    public function setUsername(string $username): self
+    {
+        $this->username = $username;
         return $this;
     }
 
     /**
-     * Get email
+     * A visual identifier that represents this user.
      *
-     * @return string
+     * @see UserInterface
      */
-    public function getEmail()
+    public function getUserIdentifier(): string
     {
-        return $this->email;
+        return (string) $this->email;
+    }
+
+    /**
+     * @see UserInterface
+     */
+    public function getRoles(): array
+    {
+        $roles = $this->roles;
+        // guarantee every user at least has ROLE_USER
+        $roles[] = 'ROLE_USER';
+
+        return array_unique($roles);
+    }
+
+    public function setRoles(array $roles): self
+    {
+        $this->roles = $roles;
+        return $this;
+    }
+
+    /**
+     * @see PasswordAuthenticatedUserInterface
+     */
+    public function getPassword(): ?string
+    {
+        return $this->password;
+    }
+
+    public function setPassword(string $password): self
+    {
+        $this->password = $password;
+        return $this;
+    }
+
+    /**
+     * @see UserInterface
+     */
+    public function eraseCredentials(): void
+    {
+        // If you store any temporary, sensitive data on the user, clear it here
+        // $this->plainPassword = null;
     }
 
     /**
@@ -115,7 +168,7 @@ class Author extends BaseUser {
      *
      * @return Author
      */
-    public function setFirstName($firstName)
+    public function setFirstName($firstName): self
     {
         $this->firstName = $firstName;
 
@@ -127,7 +180,7 @@ class Author extends BaseUser {
      *
      * @return string
      */
-    public function getFirstName()
+    public function getFirstName(): ?string
     {
         return $this->firstName;
     }
@@ -139,7 +192,7 @@ class Author extends BaseUser {
      *
      * @return Author
      */
-    public function setLastName($lastName)
+    public function setLastName($lastName): self
     {
         $this->lastName = $lastName;
 
@@ -151,7 +204,7 @@ class Author extends BaseUser {
      *
      * @return string
      */
-    public function getLastName()
+    public function getLastName(): ?string
     {
         return $this->lastName;
     }
@@ -163,7 +216,7 @@ class Author extends BaseUser {
      *
      * @return Author
      */
-    public function setCreatedDate($createdDate)
+    public function setCreatedDate($createdDate): self
     {
         $this->createdDate = $createdDate;
 
@@ -175,7 +228,7 @@ class Author extends BaseUser {
      *
      * @return \DateTime
      */
-    public function getCreatedDate()
+    public function getCreatedDate(): ?\DateTime
     {
         return $this->createdDate;
     }
@@ -187,7 +240,7 @@ class Author extends BaseUser {
      *
      * @return Author
      */
-    public function addReview(\AppBundle\Entity\Review $review)
+    public function addReview(\AppBundle\Entity\Review $review): self
     {
         $this->reviews[] = $review;
 
@@ -199,7 +252,7 @@ class Author extends BaseUser {
      *
      * @param \AppBundle\Entity\Review $review
      */
-    public function removeReview(\AppBundle\Entity\Review $review)
+    public function removeReview(\AppBundle\Entity\Review $review): void
     {
         $this->reviews->removeElement($review);
     }
@@ -221,7 +274,7 @@ class Author extends BaseUser {
      *
      * @return Author
      */
-    public function addFundraiser(\AppBundle\Entity\Fundraiser $fundraiser)
+    public function addFundraiser(\AppBundle\Entity\Fundraiser $fundraiser): self
     {
         $this->fundraisers[] = $fundraiser;
 
@@ -233,7 +286,7 @@ class Author extends BaseUser {
      *
      * @param \AppBundle\Entity\Fundraiser $fundraiser
      */
-    public function removeFundraiser(\AppBundle\Entity\Fundraiser $fundraiser)
+    public function removeFundraiser(\AppBundle\Entity\Fundraiser $fundraiser): void
     {
         $this->fundraisers->removeElement($fundraiser);
     }
@@ -253,13 +306,13 @@ class Author extends BaseUser {
      * @param \AppBundle\Entity\Author $author
      * @return bool
      */
-    public function hasFundraiser(\AppBundle\Entity\Fundraiser $fundraiser)
+    public function hasFundraiser(\AppBundle\Entity\Fundraiser $fundraiser): bool
     {
         return $this->getFundraisers()->contains($fundraiser);
     }
 
-    public function __toString() {
-        return $this->email;
+    public function __toString(): string
+    {
+        return $this->email ?? '';
     }
-
 }

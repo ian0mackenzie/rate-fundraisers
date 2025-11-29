@@ -2,20 +2,14 @@
 
 namespace AppBundle\Form;
 
-use Doctrine\Common\Persistence\ObjectManager;
+use AppBundle\Entity\Author;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class AuthorType extends AbstractType
 {
-
-    private $manager;
-
-    /**
-     * {@inheritdoc}
-     */
-    public function buildForm(FormBuilderInterface $builder, array $options)
+    public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         //$builder->add($builder->create('email')->addModelTransformer($transformer));
 
@@ -26,23 +20,15 @@ class AuthorType extends AbstractType
         //$builder->add('createdDate');
     }
     
-    /**
-     * {@inheritdoc}
-     */
-    public function configureOptions(OptionsResolver $resolver)
+    public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults(array(
-            'data_class' => 'AppBundle\Entity\Author'
-        ));
+        $resolver->setDefaults([
+            'data_class' => Author::class
+        ]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getBlockPrefix()
+    public function getBlockPrefix(): string
     {
         return 'appbundle_author';
     }
-
-
 }
