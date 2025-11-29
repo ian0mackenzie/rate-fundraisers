@@ -14,52 +14,77 @@ class StatsController extends AbstractController
     #[Route('/stats', name: 'app_stats')]
     public function index(EntityManagerInterface $entityManager): Response
     {
-        // Get basic stats
-        $fundraiserCount = $entityManager->getRepository(Fundraiser::class)->count([]);
-        $reviewCount = $entityManager->getRepository(Review::class)->count([]);
+        // Tag this request for Sentry tracking
+        \Sentry\configureScope(function (\Sentry\State\Scope $scope): void {
+            $scope->setTag('feature', 'stats-page');
+            $scope->setTag('error-type', 'division-by-zero-error-triggered');
+        });
         
-        // Calculate average ratings
-        $totalRatings = $entityManager->createQuery(
-            'SELECT SUM(r.rating) FROM AppBundle\Entity\Review r'
-        )->getSingleScalarResult() ?? 0;
-        
-        $averageRating = $reviewCount > 0 ? $totalRatings / $reviewCount : 0;
-        
-        // Get fundraisers without reviews 
-        $fundraisersWithoutReviews = $entityManager->createQuery(
-            'SELECT COUNT(f.id) FROM AppBundle\Entity\Fundraiser f 
-             WHERE f.id NOT IN (SELECT DISTINCT IDENTITY(r.fundraiser) FROM AppBundle\Entity\Review r)'
-        )->getSingleScalarResult() ?? 0;
-        
-        // INTENTIONAL BUG: Calculate a "problematic ratio" that will cause division by zero
-        // This simulates a common bug where developers forget edge cases
-        $problematicRatio = 0;
-        
-        // Count reviews for fundraisers with ID > 10 (our new "Buggy Fundraiser" has ID 11)
-        $newFundraisersReviewCount = $entityManager->createQuery(
-            'SELECT COUNT(r.id) FROM AppBundle\Entity\Review r 
-             JOIN r.fundraiser f WHERE f.id > 10'
-        )->getSingleScalarResult() ?? 0;
-        
-        // INTENTIONAL BUG: This will always be division by zero for fresh DB
-        // because fundraiser ID 11 has no reviews
-        if ($fundraiserCount > 10) {
-            // This line will crash! New fundraisers (ID > 10) have no reviews
-            $problematicRatio = 100 / $newFundraisersReviewCount;
-        }
+        try {
+            // Get basic stats - simple and safe
+            $fundraiserCount = $entityManager->getRepository(Fundraiser::class)->count([]);
+            $reviewCount = $entityManager->getRepository(Review::class)->count([]);
+            
+            // Calculate average rating - safe division
+            $averageRating = 0;
+            if ($reviewCount > 0) {
+                $totalRatings = $entityManager->createQuery(
+                    'SELECT SUM(r.rating) FROM AppBundle\Entity\Review r'
+                )->getSingleScalarResult() ?? 0;
+                $averageRating = $totalRatings / $reviewCount;
+            }
+            
+            // Get fundraisers without reviews - using a simpler LEFT JOIN approach
+            $fundraisersWithoutReviews = $entityManager->createQuery(
+                'SELECT COUNT(f.id) FROM AppBundle\Entity\Fundraiser f 
+                 LEFT JOIN f.reviews r 
+                 WHERE r.id IS NULL'
+            )->getSingleScalarResult() ?? 0;
+            
+            // INTENTIONAL BUG: This is our division by zero trap!
+            // Check if there are "new" fundraisers (ID > 10) without reviews
+            $newFundraisersWithoutReviews = $entityManager->createQuery(
+                'SELECT COUNT(f.id) FROM AppBundle\Entity\Fundraiser f 
+                 LEFT JOIN f.reviews r 
+                 WHERE f.id > 10 AND r.id IS NULL'
+            )->getSingleScalarResult() ?? 0;
+            
+            // INTENTIONAL BUG: Division by zero when new fundraisers exist but have no reviews
+            $problematicRatio = 0;
+            if ($newFundraisersWithoutReviews > 0) {
+                // This will crash! We're dividing by the count of reviews for new fundraisers (which is 0)
+                $newFundraisersReviewCount = $entityManager->createQuery(
+                    'SELECT COUNT(r.id) FROM AppBundle\Entity\Review r 
+                     JOIN r.fundraiser f WHERE f.id > 10'
+                )->getSingleScalarResult() ?? 0;
+                
+                // BOOM! Division by zero
+                $problematicRatio = 100 / $newFundraisersReviewCount;
+            }
 
-        return $this->render('stats/index.html.twig', [
-            'fundraiser_count' => $fundraiserCount,
-            'review_count' => $reviewCount,
-            'average_rating' => $averageRating,
-            'fundraisers_without_reviews' => $fundraisersWithoutReviews,
-            'problematic_ratio' => $problematicRatio,
-        ]);
+            return $this->render('stats/index.html.twig', [
+                'fundraiser_count' => $fundraiserCount,
+                'review_count' => $reviewCount,
+                'average_rating' => round($averageRating, 2),
+                'fundraisers_without_reviews' => $fundraisersWithoutReviews,
+                'problematic_ratio' => $problematicRatio,
+            ]);
+            
+        } catch (\Exception $e) {
+            // For debugging - in production, this would be caught by Sentry
+            throw new \Exception('Stats calculation failed: ' . $e->getMessage(), 0, $e);
+        }
     }
     
     #[Route('/stats/trigger-error', name: 'app_stats_trigger_error')]
     public function triggerError(EntityManagerInterface $entityManager): Response
     {
+        // Tag this request for Sentry tracking
+        \Sentry\configureScope(function (\Sentry\State\Scope $scope): void {
+            $scope->setTag('feature', 'error-trigger');
+            $scope->setTag('error-type', 'division-by-zero-error-triggered');
+        });
+        
         // This endpoint will definitely trigger a division by zero error
         // by temporarily removing all reviews from the calculation
         
@@ -73,5 +98,71 @@ class StatsController extends AbstractController
         $averageRating = $totalRatings / $fakeReviewCount;
         
         return new Response('This should never be reached');
+    }
+    
+    #[Route('/stats/debug', name: 'app_stats_debug')]
+    public function debugStats(EntityManagerInterface $entityManager): Response
+    {
+        // Safe stats for debugging without the intentional error
+        $fundraiserCount = $entityManager->getRepository(Fundraiser::class)->count([]);
+        $reviewCount = $entityManager->getRepository(Review::class)->count([]);
+        
+        $averageRating = 0;
+        if ($reviewCount > 0) {
+            $totalRatings = $entityManager->createQuery(
+                'SELECT SUM(r.rating) FROM AppBundle\Entity\Review r'
+            )->getSingleScalarResult() ?? 0;
+            $averageRating = $totalRatings / $reviewCount;
+        }
+        
+        $fundraisersWithoutReviews = $entityManager->createQuery(
+            'SELECT COUNT(f.id) FROM AppBundle\Entity\Fundraiser f 
+             LEFT JOIN f.reviews r 
+             WHERE r.id IS NULL'
+        )->getSingleScalarResult() ?? 0;
+        
+        $newFundraisersReviewCount = $entityManager->createQuery(
+            'SELECT COUNT(r.id) FROM AppBundle\Entity\Review r 
+             JOIN r.fundraiser f WHERE f.id > 10'
+        )->getSingleScalarResult() ?? 0;
+        
+        return new Response(json_encode([
+            'fundraiser_count' => $fundraiserCount,
+            'review_count' => $reviewCount,
+            'average_rating' => round($averageRating, 2),
+            'fundraisers_without_reviews' => $fundraisersWithoutReviews,
+            'new_fundraisers_review_count' => $newFundraisersReviewCount,
+            'message' => 'Debug stats - no errors here!'
+        ], JSON_PRETTY_PRINT), 200, ['Content-Type' => 'application/json']);
+    }
+
+    #[Route('/sentry-test', name: 'app_sentry_test')]
+    public function sentryTest(): Response
+    {
+        // Test different types of Sentry reporting
+        
+        // 1. Manual exception
+        if (isset($_GET['exception'])) {
+            throw new \Exception('Test exception for Sentry monitoring!');
+        }
+        
+        // 2. Manual message
+        if (isset($_GET['message'])) {
+            \Sentry\captureMessage('Test message from Rate Fundraisers app!', \Sentry\Severity::info());
+            return new Response('Message sent to Sentry! Check your dashboard.');
+        }
+        
+        // 3. Show test options
+        return new Response('
+            <h1>🚨 Sentry Test Page</h1>
+            <p>Choose a test:</p>
+            <ul>
+                <li><a href="/sentry-test?exception=1">Trigger Exception</a></li>
+                <li><a href="/sentry-test?message=1">Send Message</a></li>
+                <li><a href="/stats/debug">Safe Stats (debug)</a></li>
+                <li><a href="/stats">Dangerous Stats (division by zero error)</a></li>
+                <li><a href="/stats/trigger-error">Guaranteed Error</a></li>
+            </ul>
+        ');
     }
 }
