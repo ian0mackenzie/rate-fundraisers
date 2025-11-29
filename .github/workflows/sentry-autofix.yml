@@ -1,0 +1,43 @@
+name: Sentry auto-fix
+
+on:
+  # We'll call this from an API later (via repository_dispatch)
+  repository_dispatch:
+    types: [sentry_error]
+
+  # Optional: lets you trigger it manually from the Actions tab to test
+  workflow_dispatch:
+    inputs:
+      sentry_payload:
+        description: "Raw Sentry payload (JSON)"
+        required: false
+        default: "{}"
+
+jobs:
+  handle-sentry-error:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Get Sentry payload
+        id: payload
+        run: |
+          if [ -n "${{ github.event.client_payload.sentry }}" ]; then
+            echo '${{ toJson(github.event.client_payload.sentry) }}' > sentry-event.json
+          else
+            # fallback for manual testing via workflow_dispatch
+            echo '${{ github.event.inputs.sentry_payload }}' > sentry-event.json
+          fi
+
+          echo "Sentry payload saved to sentry-event.json"
+          cat sentry-event.json || true
+
+      # Later you'll replace this with:
+      # - calling an AI model
+      # - generating a patch
+      # - committing to a branch and opening a PR
+      - name: Placeholder - do something with the payload
+        run: |
+          echo "TODO: analyze sentry-event.json and generate a fix"

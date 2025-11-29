@@ -12,6 +12,7 @@ class MenuController extends AbstractController
     public function indexAction(AuthorizationCheckerInterface $authChecker): Response
     {
         $menu[] = ["name" => "Fundraisers","link" => $this->generateUrl('fundraiser_index')];
+        $menu[] = ["name" => "Quick Stats","link" => $this->generateUrl('app_stats')];
 
         if($authChecker->isGranted('ROLE_USER')){
             $menu[] = ["name" => "Log Out","link" => $this->generateUrl('fos_user_security_logout')];
