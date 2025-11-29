@@ -1,0 +1,60 @@
+when@prod:
+    sentry:
+        dsn: '%env(SENTRY_DSN)%'
+        options:
+            # Add request headers, cookies, IP address and the authenticated user
+            send_default_pii: true
+            # Sample rate for performance monitoring (10% of transactions)
+            traces_sample_rate: 0.1
+            # Release tracking
+            release: '%env(default::APP_VERSION)%'
+            environment: 'production'  # Explicitly set for clarity
+            # Server name to distinguish AWS deployment
+            server_name: 'aws-fargate'
+            # Don't ignore our intentional errors for testing
+            ignore_exceptions: []
+            # Add extra context for AWS environment
+            tags:
+                deployment: 'aws'
+                infrastructure: 'fargate'
+
+when@dev:
+    sentry:
+        dsn: '%env(SENTRY_DSN)%'
+        options:
+            send_default_pii: true
+            traces_sample_rate: 1.0  # Track all transactions in dev
+            environment: 'development'  # Explicitly set for clarity
+            # Server name to distinguish local development
+            server_name: 'local-docker'
+            ignore_exceptions: []
+            # Add extra context for local environment
+            tags:
+                deployment: 'local'
+                infrastructure: 'docker'
+#
+#        # If you are using Monolog, you also need this additional configuration to log the errors correctly:
+#        # https://docs.sentry.io/platforms/php/guides/symfony/#monolog-integration
+#        register_error_listener: false
+#        register_error_handler: false
+#
+#    monolog:
+#        handlers:
+#            # Use this only if you don't want to use structured logging and instead receive
+#            # certain log levels as errors.  
+#            sentry:
+#                type: sentry
+#                level: !php/const Monolog\Logger::ERROR
+#                hub_id: Sentry\State\HubInterface
+#                fill_extra_context: true # Enables sending monolog context to Sentry
+#                process_psr_3_messages: false # Disables the resolution of PSR-3 placeholders
+#
+#            # Use this for structured log integration
+#            sentry_logs:
+#                type: service
+#                id: Sentry\SentryBundle\Monolog\LogsHandler
+#
+#    services:
+#        Sentry\SentryBundle\Monolog\LogsHandler:
+#            arguments:
+#                - !php/const Monolog\Logger::INFO
