@@ -131,7 +131,9 @@ jobs:
       - name: Get repository & Copilot agent IDs
         id: ids
         env:
-          GH_TOKEN: ${{ github.token }}
+          # Use a user token (fine-grained PAT) as recommended by Copilot docs
+          # This token must have: metadata read; actions, contents, issues, and pull-requests read/write
+          GH_TOKEN: ${{ secrets.COPILOT_USER_TOKEN }}
         run: |
           owner="${GITHUB_REPOSITORY%/*}"
           repo="${GITHUB_REPOSITORY#*/}"
@@ -167,7 +169,8 @@ jobs:
           echo "All suggested actors:"
           echo "$repo_res" | jq -r '.data.repository.suggestedActors.nodes[]? | "- \(.login) (\(.__typename)): \(.id)"'
 
-          # Look for various possible Copilot agent login names
+          # Look for various possible Copilot agent login names. Per docs, copilot-swe-agent
+          # should be the primary login if Copilot coding agent is enabled for this repo.
           copilot_id=$(echo "$repo_res" \
             | jq -r '.data.repository.suggestedActors.nodes[]? 
               | select(
@@ -182,39 +185,6 @@ jobs:
           if [ -z "$copilot_id" ] || [ "$copilot_id" = "null" ]; then
             echo "❌ No Copilot coding agent found in suggested actors."
             echo "COPILOT_ACTOR_ID=" >> "$GITHUB_OUTPUT"
-            
-            # Try alternative approach: check if Copilot is enabled by querying for known bot users
-            echo "🔍 Trying alternative approach to find Copilot bot..."
-            
-            # Query for potential Copilot bot accounts
-            bot_search=$(gh api graphql -f query='
-              query {
-                search(query: "copilot in:login type:user", type: USER, first: 10) {
-                  nodes {
-                    ... on Bot {
-                      login
-                      id
-                    }
-                    ... on User {
-                      login
-                      id
-                    }
-                  }
-                }
-              }')
-            
-            echo "Bot search results:"
-            echo "$bot_search" | jq '.'
-            
-            alt_copilot_id=$(echo "$bot_search" | jq -r '.data.search.nodes[]? | select(.login | test("copilot"; "i")) | .id' | head -n1)
-            
-            if [ -n "$alt_copilot_id" ] && [ "$alt_copilot_id" != "null" ]; then
-              echo "✅ Found Copilot via alternative search: $alt_copilot_id"
-              echo "COPILOT_ACTOR_ID=$alt_copilot_id" >> "$GITHUB_OUTPUT"
-            else
-              echo "❌ Copilot agent not found via any method."
-              echo "COPILOT_ACTOR_ID=" >> "$GITHUB_OUTPUT"
-            fi
           else
             echo "✅ Found Copilot agent via suggested actors: $copilot_id"
             echo "COPILOT_ACTOR_ID=$copilot_id" >> "$GITHUB_OUTPUT"
@@ -223,7 +193,8 @@ jobs:
       - name: Assign to Copilot
         if: ${{ steps.ids.outputs.COPILOT_ACTOR_ID != '' }}
         env:
-          GH_TOKEN: ${{ github.token }}
+          # Use the same user token for assigning the issue to Copilot
+          GH_TOKEN: ${{ secrets.COPILOT_USER_TOKEN }}
           ISSUE_ID: ${{ steps.create_issue.outputs.issue_id }}     # node_id from create_issue
           COPILOT_ACTOR_ID: ${{ steps.ids.outputs.COPILOT_ACTOR_ID }}
         run: |
