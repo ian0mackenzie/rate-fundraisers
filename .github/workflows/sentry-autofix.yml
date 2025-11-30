@@ -56,7 +56,7 @@ jobs:
       - name: Build GitHub issue body (jq)
         id: build_body
         run: |
-          BODY=$(jq -r '
+          jq -r '
             def nl:"\n";
             def safe(v): if v == null then "" else v end;
 
@@ -101,13 +101,8 @@ jobs:
             + ($event | tojson) + nl
             + "```" + nl + nl
             + "This issue was created automatically from a Sentry alert. Please investigate and fix."
-          ' sentry-event.json)
-
-          # Escape for GitHub output (%, newline)
-          BODY_ESCAPED=${BODY//'%'/'%25'}
-          BODY_ESCAPED=${BODY_ESCAPED//$'\n'/'%0A'}
-
-          echo "body=$BODY_ESCAPED" >> "$GITHUB_OUTPUT"
+          ' sentry-event.json > issue-body.txt
+          echo "Issue body written to issue-body.txt"
 
       - name: Create GitHub issue
         id: create_issue
@@ -115,23 +110,27 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            const fs = require("fs");
+
             const payload = context.payload.client_payload || {};
             const sentry = payload.sentry || {};
             const issue = sentry.issue || {};
+
             const title = `Sentry: ${issue.title || "Unknown error"}`;
-            const body = decodeURIComponent("${{ steps.build_body.outputs.body }}".replace(/%0A/g, "\n"));
+            const body = fs.readFileSync("issue-body.txt", "utf8");
 
             const res = await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
               title,
               body,
-              labels: ["sentry", "bug"]
+              labels: ["sentry", "bug"],
             });
 
             core.setOutput("issue_id", res.data.node_id);
             core.setOutput("issue_number", res.data.number);
             core.info(`Created issue #${res.data.number}`);
+
 
       - name: Assign to GitHub Copilot Coding Agent 🤖
         env:
