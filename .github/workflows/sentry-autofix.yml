@@ -131,14 +131,32 @@ jobs:
             core.setOutput("issue_number", res.data.number);
             core.info(`Created issue #${res.data.number}`);
 
+      - name: Fetch Copilot Actor ID automatically
+        id: copilot
+        run: |
+          owner="${{ github.repository_owner }}"
+          repo="${{ github.event.repository.name }}"
 
-      - name: Assign to GitHub Copilot Coding Agent 🤖
+          id=$(gh api graphql -f query='
+            query($owner:String!, $repo:String!) {
+              repository(owner:$owner, name:$repo) {
+                suggestedActors(capabilities:[CAN_BE_ASSIGNED], first:50) {
+                  nodes {
+                    login
+                    id
+                  }
+                }
+              }
+            }' \
+            -f owner="$owner" -f repo="$repo" | jq -r '.data.repository.suggestedActors.nodes[]? | select(.login|contains("copilot")) | .id' )
+
+          echo "COPILOT_ACTOR_ID=$id" >> $GITHUB_ENV
+
+      - name: Assign to Copilot
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}   # PAT with appropriate scopes
+          GH_TOKEN: ${{ github.token }}
           ISSUE_ID: ${{ steps.create_issue.outputs.issue_id }}
         run: |
-          echo "Assigning Copilot to Sentry-created issue..."
-
           gh api graphql -f query='
             mutation($issueId: ID!, $actorId: ID!) {
               replaceActorsForAssignable(input: { assignableId: $issueId, actorIds: [$actorId] }) {
@@ -147,4 +165,4 @@ jobs:
             }
           ' -f issueId="$ISSUE_ID" -f actorId="$COPILOT_ACTOR_ID"
 
-          echo "✔ Copilot assigned successfully."
+          echo "🤖 Copilot has been assigned — watch for a PR!"
