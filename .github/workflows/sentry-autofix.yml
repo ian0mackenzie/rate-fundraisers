@@ -133,6 +133,9 @@ jobs:
 
       - name: Get repository & Copilot agent IDs
         id: ids
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_ID: ${{ steps.create_issue.outputs.issue_id }}
         run: |
           owner="${GITHUB_REPOSITORY%/*}"
           repo="${GITHUB_REPOSITORY#*/}"
