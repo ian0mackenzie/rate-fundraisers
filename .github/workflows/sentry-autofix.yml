@@ -131,26 +131,52 @@ jobs:
             core.setOutput("issue_number", res.data.number);
             core.info(`Created issue #${res.data.number}`);
 
-      - name: Fetch Copilot Actor ID automatically
-        id: copilot
+      - name: Get repository & Copilot agent IDs
+        id: ids
         run: |
-          owner="${{ github.repository_owner }}"
-          repo="${{ github.event.repository.name }}"
+          owner="${GITHUB_REPOSITORY%/*}"
+          repo="${GITHUB_REPOSITORY#*/}"
 
-          id=$(gh api graphql -f query='
-            query($owner:String!, $repo:String!) {
-              repository(owner:$owner, name:$repo) {
-                suggestedActors(capabilities:[CAN_BE_ASSIGNED], first:50) {
+          echo "Repo: $owner / $repo"
+
+          repo_res=$(gh api graphql -f query='
+            query($owner:String!, $name:String!) {
+              repository(owner: $owner, name: $name) {
+                id
+                suggestedActors(capabilities: [CAN_BE_ASSIGNED], first: 100) {
                   nodes {
                     login
-                    id
+                    __typename
+                    ... on Bot {
+                      id
+                    }
+                    ... on User {
+                      id
+                    }
                   }
                 }
               }
-            }' \
-            -f owner="$owner" -f repo="$repo" | jq -r '.data.repository.suggestedActors.nodes[]? | select(.login|contains("copilot")) | .id' )
+            }' -f owner="$owner" -f name="$repo")
 
-          echo "COPILOT_ACTOR_ID=$id" >> $GITHUB_ENV
+          echo "Raw suggestedActors:"
+          echo "$repo_res"
+
+          repo_id=$(echo "$repo_res" | jq -r '.data.repository.id')
+          echo "REPO_ID=$repo_id" >> $GITHUB_OUTPUT
+
+          copilot_id=$(echo "$repo_res" \
+            | jq -r '.data.repository.suggestedActors.nodes[]? 
+              | select(.login=="copilot-swe-agent" or .login=="copilot") 
+              | .id')
+
+          if [ -z "$copilot_id" ] || [ "$copilot_id" = "null" ]; then
+            echo "Copilot coding agent is not enabled or not suggested for this repo."
+            echo "COPILOT_ACTOR_ID=" >> $GITHUB_OUTPUT
+          else
+            echo "Found Copilot agent id: $copilot_id"
+            echo "COPILOT_ACTOR_ID=$copilot_id" >> $GITHUB_OUTPUT
+          fi
+
 
       - name: Assign to Copilot
         env:
