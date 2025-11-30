@@ -1,8 +1,14 @@
-name: Sentry event alert – Create issue + Assign to Copilot
+name: Sentry event alert – create issue + assign Copilot
 
 on:
   repository_dispatch:
     types: [sentry_event_alert]
+  workflow_dispatch:
+    inputs:
+      sentry_json:
+        description: "Raw Sentry JSON ({ issue, event }) for local testing"
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -10,7 +16,7 @@ permissions:
   pull-requests: write
 
 env:
-  COPILOT_ACTOR_ID: "BOT_kgDOC9w8XQ"   # ← keep this the same (yours)
+  COPILOT_ACTOR_ID: "BOT_kgDOC9w8XQ"
 
 jobs:
   create_and_assign_issue:
@@ -20,42 +26,87 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Parse incoming Sentry payload into sentry-event.json
+      - name: Select Sentry payload source and save to file
         env:
-          DATA: ${{ toJson(github.event.client_payload.sentry) }}
+          SENTRY_FROM_DISPATCH: ${{ toJson(github.event.client_payload.sentry) }}
+          SENTRY_FROM_INPUT: ${{ inputs.sentry_json }}
         run: |
-          echo "$DATA" > sentry-event.json
-          echo "Payload received and written to file."
+          # Prefer repository_dispatch payload if present and not "null"
+          if [ -n "$SENTRY_FROM_DISPATCH" ] && [ "$SENTRY_FROM_DISPATCH" != "null" ]; then
+            echo "Writing Sentry payload from repository_dispatch"
+            printf '%s\n' "$SENTRY_FROM_DISPATCH" > sentry-event.json
+          else
+            echo "No client_payload.sentry found, using workflow_dispatch input"
+            printf '%s\n' "$SENTRY_FROM_INPUT" > sentry-event.json
+          fi
 
-      - name: Build GitHub issue body from Sentry event
+          echo "Sentry payload saved to sentry-event.json"
+
+          # Quick debug view in logs
+          jq '
+            (.event // .issue)
+            | {
+                title,
+                level,
+                platform,
+                message: (.message // .metadata.value // .metadata.type)
+              }
+          ' sentry-event.json || cat sentry-event.json
+
+      - name: Build GitHub issue body (jq)
         id: build_body
         run: |
           BODY=$(jq -r '
             def nl:"\n";
-            def safe(v): if v==null then "" else v end;
+            def safe(v): if v == null then "" else v end;
 
             .issue as $issue
             | .event as $event
 
-            | "Sentry Alert\n\n"
-            + "Message: " + safe($issue.metadata.value) + nl
-            + "Error: " + safe($issue.metadata.type) + nl
-            + "File: " + safe($issue.metadata.filename) + nl
-            + "URL: " + safe(($event.request.url // $event.web_url)) + nl + nl
-            + "Stack Trace:\n"
+            | "Sentry reported an error in environment: " + (safe(
+                  (
+                    ($event.tags // [])
+                    | map(select(.[0] == "environment"))[0][1]
+                  )
+                )) + nl + nl
+
+            + "Level: " + safe($issue.level) + nl
+            + "Error type: " + safe($issue.metadata.type) + nl
+            + "Message: " + (safe($issue.metadata.value) // safe($event.message)) + nl + nl
+
+            + "Summary:" + nl
+            + "Culprit: " + safe($issue.culprit) + nl
+            + "Location: " + safe($issue.metadata.filename) + " :: " + safe($issue.metadata.function) + nl
+            + "Request URL: " + safe($event.request.url) + nl
+            + "Sentry link: " + safe($event.web_url) + nl + nl
+
+            + "Recent stacktrace frames:" + nl
             + (
                 if ($event.exception.values[0].stacktrace.frames | length) > 0 then
-                  ($event.exception.values[0].stacktrace.frames[-5:] 
-                    | map("- " + (.filename // "?") + ":" + (.lineno|tostring) + " — " + (.function // ""))
+                  (
+                    $event.exception.values[0].stacktrace.frames[-5:]
+                    | map(
+                        "- " + (.filename // "?")
+                        + ":" + ((.lineno // 0) | tostring)
+                        + " — " + (.function // "")
+                      )
                     | join(nl)
                   )
                 else "- No frames available"
+                end
               ) + nl + nl
-            + "Raw Event JSON:\n```json\n" + ( $event | tostring ) + "\n```"
+
+            + "Event snapshot (for Copilot / debugging):" + nl
+            + "```json" + nl
+            + ($event | tojson) + nl
+            + "```" + nl + nl
+            + "This issue was created automatically from a Sentry alert. Please investigate and fix."
           ' sentry-event.json)
 
+          # Escape for GitHub output (%, newline)
           BODY_ESCAPED=${BODY//'%'/'%25'}
           BODY_ESCAPED=${BODY_ESCAPED//$'\n'/'%0A'}
+
           echo "body=$BODY_ESCAPED" >> "$GITHUB_OUTPUT"
 
       - name: Create GitHub issue
@@ -64,10 +115,13 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const title = "Sentry: " + "${{ github.event.client_payload.sentry.issue.title }}";
-            const body = `${{ steps.build_body.outputs.body }}`;
+            const payload = context.payload.client_payload || {};
+            const sentry = payload.sentry || {};
+            const issue = sentry.issue || {};
+            const title = `Sentry: ${issue.title || "Unknown error"}`;
+            const body = decodeURIComponent("${{ steps.build_body.outputs.body }}".replace(/%0A/g, "\n"));
 
-            const issue = await github.rest.issues.create({
+            const res = await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
               title,
@@ -75,24 +129,23 @@ jobs:
               labels: ["sentry", "bug"]
             });
 
-            core.setOutput("issue_id", issue.data.node_id);
-            core.setOutput("issue_number", issue.data.number);
-            console.log("Created issue #" + issue.data.number);
+            core.setOutput("issue_id", res.data.node_id);
+            core.setOutput("issue_number", res.data.number);
+            core.info(`Created issue #${res.data.number}`);
 
       - name: Assign to GitHub Copilot Coding Agent 🤖
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}   # PAT with appropriate scopes
           ISSUE_ID: ${{ steps.create_issue.outputs.issue_id }}
         run: |
-          echo "Assigning Copilot to Sentry issue..."
+          echo "Assigning Copilot to Sentry-created issue..."
 
           gh api graphql -f query='
-            mutation($issueId:ID!, $actorId:ID!) {
-              replaceActorsForAssignable(input:{assignableId:$issueId, actorIds:[$actorId]}) {
+            mutation($issueId: ID!, $actorId: ID!) {
+              replaceActorsForAssignable(input: { assignableId: $issueId, actorIds: [$actorId] }) {
                 assignable { __typename }
               }
-            }' \
-          -f issueId=$ISSUE_ID \
-          -f actorId=$COPILOT_ACTOR_ID
+            }
+          ' -f issueId="$ISSUE_ID" -f actorId="$COPILOT_ACTOR_ID"
 
-          echo "✔ Copilot assigned!"
+          echo "✔ Copilot assigned successfully."
