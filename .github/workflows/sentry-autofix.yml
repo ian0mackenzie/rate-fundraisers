@@ -135,7 +135,6 @@ jobs:
         id: ids
         env:
           GH_TOKEN: ${{ github.token }}
-          ISSUE_ID: ${{ steps.create_issue.outputs.issue_id }}
         run: |
           owner="${GITHUB_REPOSITORY%/*}"
           repo="${GITHUB_REPOSITORY#*/}"
@@ -165,27 +164,30 @@ jobs:
           echo "$repo_res"
 
           repo_id=$(echo "$repo_res" | jq -r '.data.repository.id')
-          echo "REPO_ID=$repo_id" >> $GITHUB_OUTPUT
+          echo "REPO_ID=$repo_id" >> "$GITHUB_OUTPUT"
 
           copilot_id=$(echo "$repo_res" \
             | jq -r '.data.repository.suggestedActors.nodes[]? 
-              | select(.login=="copilot-swe-agent" or .login=="copilot") 
+              | select(.login == "copilot-swe-agent" or .login == "copilot") 
               | .id')
 
           if [ -z "$copilot_id" ] || [ "$copilot_id" = "null" ]; then
             echo "Copilot coding agent is not enabled or not suggested for this repo."
-            echo "COPILOT_ACTOR_ID=" >> $GITHUB_OUTPUT
+            echo "COPILOT_ACTOR_ID=" >> "$GITHUB_OUTPUT"
           else
             echo "Found Copilot agent id: $copilot_id"
-            echo "COPILOT_ACTOR_ID=$copilot_id" >> $GITHUB_OUTPUT
+            echo "COPILOT_ACTOR_ID=$copilot_id" >> "$GITHUB_OUTPUT"
           fi
 
-
       - name: Assign to Copilot
+        if: ${{ steps.ids.outputs.COPILOT_ACTOR_ID != '' }}
         env:
           GH_TOKEN: ${{ github.token }}
-          ISSUE_ID: ${{ steps.create_issue.outputs.issue_id }}
+          ISSUE_ID: ${{ steps.create_issue.outputs.issue_id }}     # node_id from create_issue
+          COPILOT_ACTOR_ID: ${{ steps.ids.outputs.COPILOT_ACTOR_ID }}
         run: |
+          echo "Assigning Copilot (actor: $COPILOT_ACTOR_ID) to issue $ISSUE_ID"
+
           gh api graphql -f query='
             mutation($issueId: ID!, $actorId: ID!) {
               replaceActorsForAssignable(input: { assignableId: $issueId, actorIds: [$actorId] }) {
@@ -195,3 +197,8 @@ jobs:
           ' -f issueId="$ISSUE_ID" -f actorId="$COPILOT_ACTOR_ID"
 
           echo "🤖 Copilot has been assigned — watch for a PR!"
+
+      - name: Copilot not available (optional)
+        if: ${{ steps.ids.outputs.COPILOT_ACTOR_ID == '' }}
+        run: |
+          echo "⚠️ Copilot coding agent not available or not suggested for this repo; skipping assignment."
