@@ -2,7 +2,7 @@
     {% for fundraiser in fundraisers %}
         <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12 clearfix">
             <div class="thumbnail clearfix">
-                {% if fundraiser.thumbnail is defined %}
+                {% if fundraiser.thumbnail is defined and fundraiser.thumbnail starts with 'http' %}
                 <img src="{{ fundraiser.thumbnail }}" alt="Thumbnail for {{ fundraiser.name }}">
                 {% endif %}
                 <div class="caption">

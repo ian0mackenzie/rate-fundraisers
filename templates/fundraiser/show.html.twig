@@ -5,9 +5,11 @@
 <h1>Fundraiser: {{ fundraiser.name }}</h1>
 
 <div class="well"><div class="media">
+    {% if fundraiser.thumbnail is defined and fundraiser.thumbnail starts with 'http' %}
     <div class="media-left media-top">
         <img class="media-object" src="{{ fundraiser.thumbnail }}">
     </div>
+    {% endif %}
     <div class="media-body">
     
         <h4 class="media-heading">{{ fundraiser.name }}</h4>
