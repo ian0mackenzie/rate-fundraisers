@@ -41,7 +41,6 @@ class StatsController extends AbstractController
                  WHERE r.id IS NULL'
             )->getSingleScalarResult() ?? 0;
             
-            // INTENTIONAL BUG: This is our division by zero trap!
             // Check if there are "new" fundraisers (ID > 10) without reviews
             $newFundraisersWithoutReviews = $entityManager->createQuery(
                 'SELECT COUNT(f.id) FROM AppBundle\Entity\Fundraiser f 
@@ -49,17 +48,18 @@ class StatsController extends AbstractController
                  WHERE f.id > 10 AND r.id IS NULL'
             )->getSingleScalarResult() ?? 0;
             
-            // INTENTIONAL BUG: Division by zero when new fundraisers exist but have no reviews
+            // Calculate ratio of new fundraisers with reviews
             $problematicRatio = 0;
             if ($newFundraisersWithoutReviews > 0) {
-                // This will crash! We're dividing by the count of reviews for new fundraisers (which is 0)
                 $newFundraisersReviewCount = $entityManager->createQuery(
                     'SELECT COUNT(r.id) FROM AppBundle\Entity\Review r 
                      JOIN r.fundraiser f WHERE f.id > 10'
                 )->getSingleScalarResult() ?? 0;
                 
-                // BOOM! Division by zero
-                $problematicRatio = 100 / $newFundraisersReviewCount;
+                // Guard against division by zero
+                if ($newFundraisersReviewCount > 0) {
+                    $problematicRatio = 100 / $newFundraisersReviewCount;
+                }
             }
 
             return $this->render('stats/index.html.twig', [
